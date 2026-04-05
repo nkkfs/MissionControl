@@ -1,0 +1,31 @@
+{
+  "agents": [
+    {
+      "id": "agent-main",
+      "displayName": "Primary Agent",
+      "role": "Lead Orchestrator",
+      "description": "Coordinates all other agents and handles complex multi-step tasks. Responsible for task decomposition, delegation, and quality assurance.",
+      "model": "GPT-4o",
+      "tools": ["browser", "terminal", "file-ops", "web-search"],
+      "avatarColor": "#D4A843"
+    },
+    {
+      "id": "agent-research",
+      "displayName": "Research Agent",
+      "role": "Data Analyst",
+      "description": "Handles web research, data gathering, and analysis tasks. Specializes in finding and synthesizing information from multiple sources.",
+      "model": "Claude 3.5 Sonnet",
+      "tools": ["browser", "web-search", "file-ops"],
+      "avatarColor": "#3B82F6"
+    },
+    {
+      "id": "agent-writer",
+      "displayName": "Writer Agent",
+      "role": "Content Generator",
+      "description": "Creates written content including newsletters, reports, documentation, and social media posts.",
+      "model": "Llama 3 70B",
+      "tools": ["file-ops", "web-search"],
+      "avatarColor": "#A855F7"
+    }
+  ]
+}

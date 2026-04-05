@@ -1,0 +1,1 @@
+Build an autonomous AI workforce that operates 24/7, handling research, content creation, and project management with minimal human supervision. Each agent specializes in its domain while the orchestrator ensures coherent execution across all initiatives.
