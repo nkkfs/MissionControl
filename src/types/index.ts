@@ -99,3 +99,57 @@ export interface Project {
   createdAt: number;
   updatedAt: number;
 }
+
+export type MemoryType = "knowledge" | "note" | "context";
+
+export interface Memory {
+  id: string;
+  agentId: string;
+  type: MemoryType;
+  title: string;
+  content: string;
+  tags: string[];
+  createdAt: number;
+}
+
+export type DocumentType = "report" | "newsletter" | "analysis" | "note";
+
+export interface Document {
+  id: string;
+  title: string;
+  type: DocumentType;
+  agentId: string;
+  projectId: string;
+  summary: string;
+  wordCount: number;
+  tags: string[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type EventType = "task" | "deadline" | "review";
+export type EventStatus = "scheduled" | "in_progress" | "completed" | "overdue";
+
+export interface ScheduleEvent {
+  id: string;
+  title: string;
+  agentId: string;
+  projectId: string;
+  type: EventType;
+  status: EventStatus;
+  scheduledAt: number;
+  duration: number;
+}
+
+export const EVENT_TYPE_COLORS: Record<EventType, string> = {
+  task: "var(--status-amber)",
+  deadline: "var(--status-red)",
+  review: "var(--status-blue)",
+};
+
+export const EVENT_STATUS_COLORS: Record<EventStatus, string> = {
+  scheduled: "var(--status-gray)",
+  in_progress: "var(--status-amber)",
+  completed: "var(--status-green)",
+  overdue: "var(--status-red)",
+};
