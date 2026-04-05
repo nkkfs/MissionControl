@@ -9,7 +9,15 @@ import { useAgents } from "@/lib/hooks/use-agents";
 
 export function TopBar() {
   const pathname = usePathname();
-  const pageTitle = pathname === "/team" ? "Team" : pathname === "/projects" ? "Projects" : "Tasks";
+  const PAGE_TITLES: Record<string, string> = {
+    "/tasks": "Tasks",
+    "/team": "Team",
+    "/projects": "Projects",
+    "/memory": "Memory",
+    "/docs": "Docs",
+    "/calendar": "Calendar",
+  };
+  const pageTitle = PAGE_TITLES[pathname] ?? "Tasks";
   const { connectionState } = useWebSocket();
   const { onlineCount } = useAgents();
 
