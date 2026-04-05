@@ -1,0 +1,131 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  CheckSquare, Bot, FileText, ShieldCheck, Users,
+  Calendar, FolderKanban, Brain, BookOpen, UserCircle,
+  Building2, UsersRound, Settings, Radar, Factory,
+  GitBranch, MessageSquare, PanelLeftClose, PanelLeftOpen,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+interface NavItem {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+  enabled: boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { label: "Tasks", icon: CheckSquare, href: "/tasks", enabled: true },
+  { label: "Agents", icon: Bot, href: "/agents", enabled: false },
+  { label: "Content", icon: FileText, href: "/content", enabled: false },
+  { label: "Approvals", icon: ShieldCheck, href: "/approvals", enabled: false },
+  { label: "Council", icon: Users, href: "/council", enabled: false },
+  { label: "Calendar", icon: Calendar, href: "/calendar", enabled: false },
+  { label: "Projects", icon: FolderKanban, href: "/projects", enabled: false },
+  { label: "Memory", icon: Brain, href: "/memory", enabled: false },
+  { label: "Docs", icon: BookOpen, href: "/docs", enabled: false },
+  { label: "People", icon: UserCircle, href: "/people", enabled: false },
+  { label: "Office", icon: Building2, href: "/office", enabled: false },
+  { label: "Team", icon: UsersRound, href: "/team", enabled: false },
+  { label: "System", icon: Settings, href: "/system", enabled: false },
+  { label: "Radar", icon: Radar, href: "/radar", enabled: false },
+  { label: "Factory", icon: Factory, href: "/factory", enabled: false },
+  { label: "Pipeline", icon: GitBranch, href: "/pipeline", enabled: false },
+  { label: "Feedback", icon: MessageSquare, href: "/feedback", enabled: false },
+];
+
+export function Sidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+  const [activePath, setActivePath] = useState("/tasks");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("mc-sidebar-collapsed");
+    if (saved === "true") setCollapsed(true);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("mc-sidebar-collapsed", String(collapsed));
+  }, [collapsed]);
+
+  return (
+    <TooltipProvider delay={0}>
+      <aside
+        className={cn(
+          "flex flex-col border-r border-border bg-surface transition-all duration-200",
+          collapsed ? "w-16" : "w-60"
+        )}
+      >
+        {/* Header */}
+        <div className="flex h-14 items-center gap-3 border-b border-border px-4">
+          {!collapsed && (
+            <div className="flex items-center gap-2 overflow-hidden">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
+                <Settings className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <span className="truncate text-sm font-semibold text-foreground">
+                Mission Control
+              </span>
+            </div>
+          )}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className={cn(
+              "flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors",
+              collapsed && "mx-auto"
+            )}
+          >
+            {collapsed ? (
+              <PanelLeftOpen className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto py-2">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = activePath === item.href;
+
+            const button = (
+              <button
+                key={item.label}
+                disabled={!item.enabled}
+                onClick={() => item.enabled && setActivePath(item.href)}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors mx-2",
+                  collapsed ? "justify-center px-0 mx-1" : "",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : item.enabled
+                      ? "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      : "text-muted-foreground/40 cursor-not-allowed"
+                )}
+              >
+                <Icon className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
+                {!collapsed && <span className="truncate">{item.label}</span>}
+              </button>
+            );
+
+            if (collapsed) {
+              return (
+                <Tooltip key={item.label}>
+                  <TooltipTrigger>{button}</TooltipTrigger>
+                  <TooltipContent side="right" className="text-xs">
+                    {item.label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            }
+
+            return button;
+          })}
+        </nav>
+      </aside>
+    </TooltipProvider>
+  );
+}
