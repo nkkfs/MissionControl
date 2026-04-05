@@ -28,7 +28,7 @@ export function ActivityFeed({ collapsed, onToggle }: ActivityFeedProps) {
   }
 
   return (
-    <div className="flex w-80 shrink-0 flex-col border-l border-border bg-surface">
+    <div className="flex w-72 shrink-0 flex-col border-l border-border bg-surface">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <span className="text-xs font-semibold text-foreground">Activity</span>

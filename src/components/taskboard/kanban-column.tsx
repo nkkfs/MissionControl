@@ -16,7 +16,7 @@ export function KanbanColumn({ name, sessions, agents, onCardClick }: KanbanColu
   const agentMap = new Map(agents.map((a) => [a.id, a]));
 
   return (
-    <div className="flex h-full w-72 shrink-0 flex-col">
+    <div className="flex h-full w-64 shrink-0 flex-col">
       {/* Column header */}
       <div className="flex items-center gap-2 px-2 pb-3">
         <div
