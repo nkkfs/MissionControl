@@ -67,3 +67,35 @@ export const COLUMN_COLORS: Record<ColumnName, string> = {
   Review: "var(--status-purple)",
   Done: "var(--status-green)",
 };
+
+export interface AgentMeta {
+  id: string;
+  displayName: string;
+  role: string;
+  description: string;
+  model: string;
+  tools: string[];
+  avatarColor: string;
+}
+
+export interface AgentFull extends Agent {
+  displayName: string;
+  role: string;
+  description: string;
+  model: string;
+  tools: string[];
+  avatarColor: string;
+}
+
+export type ProjectStatus = "active" | "paused" | "completed";
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  status: ProjectStatus;
+  agentIds: string[];
+  tags: string[];
+  createdAt: number;
+  updatedAt: number;
+}
