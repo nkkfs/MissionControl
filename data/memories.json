@@ -1,0 +1,58 @@
+{
+  "memories": [
+    {
+      "id": "mem-1",
+      "agentId": "agent-main",
+      "type": "knowledge",
+      "title": "API Rate Limits",
+      "content": "OpenAI API rate limit is 10,000 RPM for GPT-4o on current plan. Retry with exponential backoff after 429 responses. Consider batching requests when possible to stay within limits.",
+      "tags": ["api", "openai", "limits"],
+      "createdAt": 1743880000000
+    },
+    {
+      "id": "mem-2",
+      "agentId": "agent-research",
+      "type": "note",
+      "title": "Research Methodology",
+      "content": "When researching market data, always cross-reference at least 3 independent sources. Prioritize government statistics and industry reports over blog posts. Include confidence levels for all findings.",
+      "tags": ["methodology", "research"],
+      "createdAt": 1743860000000
+    },
+    {
+      "id": "mem-3",
+      "agentId": "agent-writer",
+      "type": "context",
+      "title": "Newsletter Brand Voice",
+      "content": "Newsletter tone should be professional but approachable. Use active voice. Keep paragraphs under 3 sentences. Include one data point per section. Always end with a clear call-to-action.",
+      "tags": ["newsletter", "voice", "style"],
+      "createdAt": 1743840000000
+    },
+    {
+      "id": "mem-4",
+      "agentId": "agent-main",
+      "type": "knowledge",
+      "title": "Team Coordination Protocol",
+      "content": "When delegating tasks: 1) Break into atomic units 2) Assign based on agent specialization 3) Set clear success criteria 4) Monitor progress every 15 minutes 5) Escalate blockers immediately.",
+      "tags": ["protocol", "delegation", "workflow"],
+      "createdAt": 1743820000000
+    },
+    {
+      "id": "mem-5",
+      "agentId": "agent-research",
+      "type": "knowledge",
+      "title": "Data Source Rankings",
+      "content": "Tier 1: Bureau of Labor Statistics, SEC filings, Census Bureau. Tier 2: Industry association reports, peer-reviewed journals. Tier 3: News outlets, analyst blogs. Always cite source tier in reports.",
+      "tags": ["sources", "data", "research"],
+      "createdAt": 1743800000000
+    },
+    {
+      "id": "mem-6",
+      "agentId": "agent-writer",
+      "type": "note",
+      "title": "Content Archive Structure",
+      "content": "All 2025 content has been organized into: /reports (42 files), /newsletters (52 weekly editions), /social (186 posts), /internal (28 memos). Total word count: ~450,000 words.",
+      "tags": ["archive", "content", "organization"],
+      "createdAt": 1743780000000
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "events": [
+    {
+      "id": "evt-1",
+      "title": "Weekly Newsletter Generation",
+      "agentId": "agent-writer",
+      "projectId": "proj-2",
+      "type": "task",
+      "status": "scheduled",
+      "scheduledAt": 1743937200000,
+      "duration": 60
+    },
+    {
+      "id": "evt-2",
+      "title": "Market Data Review",
+      "agentId": "agent-research",
+      "projectId": "proj-1",
+      "type": "review",
+      "status": "completed",
+      "scheduledAt": 1743922800000,
+      "duration": 30
+    },
+    {
+      "id": "evt-3",
+      "title": "Content Archive Deadline",
+      "agentId": "agent-writer",
+      "projectId": "proj-3",
+      "type": "deadline",
+      "status": "overdue",
+      "scheduledAt": 1744009200000,
+      "duration": 0
+    },
+    {
+      "id": "evt-4",
+      "title": "Quarterly Report Generation",
+      "agentId": "agent-main",
+      "projectId": "proj-1",
+      "type": "task",
+      "status": "scheduled",
+      "scheduledAt": 1744182000000,
+      "duration": 120
+    },
+    {
+      "id": "evt-5",
+      "title": "Newsletter Distribution Review",
+      "agentId": "agent-main",
+      "projectId": "proj-2",
+      "type": "review",
+      "status": "scheduled",
+      "scheduledAt": 1744095600000,
+      "duration": 15
+    },
+    {
+      "id": "evt-6",
+      "title": "Research Sources Audit",
+      "agentId": "agent-research",
+      "projectId": "proj-1",
+      "type": "task",
+      "status": "in_progress",
+      "scheduledAt": 1743915600000,
+      "duration": 45
+    }
+  ]
+}

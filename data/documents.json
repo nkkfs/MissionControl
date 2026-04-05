@@ -1,0 +1,64 @@
+{
+  "documents": [
+    {
+      "id": "doc-1",
+      "title": "Q1 Market Analysis Report",
+      "type": "report",
+      "agentId": "agent-research",
+      "projectId": "proj-1",
+      "summary": "Comprehensive analysis of Q1 2026 market trends across technology, healthcare, and financial sectors. Key findings include a 12% YoY growth in AI infrastructure spending and emerging opportunities in edge computing.",
+      "wordCount": 3200,
+      "tags": ["market", "q1", "analysis"],
+      "createdAt": 1743850000000,
+      "updatedAt": 1743870000000
+    },
+    {
+      "id": "doc-2",
+      "title": "Weekly Newsletter #12",
+      "type": "newsletter",
+      "agentId": "agent-writer",
+      "projectId": "proj-2",
+      "summary": "This week's highlights include the launch of three new AI models, regulatory updates from the EU, and an exclusive interview summary with industry leaders on the future of autonomous systems.",
+      "wordCount": 850,
+      "tags": ["newsletter", "weekly"],
+      "createdAt": 1743840000000,
+      "updatedAt": 1743860000000
+    },
+    {
+      "id": "doc-3",
+      "title": "Competitor Landscape Analysis",
+      "type": "analysis",
+      "agentId": "agent-research",
+      "projectId": "proj-1",
+      "summary": "Detailed comparison of 15 competitors in the AI agent orchestration space. Mapped feature parity, pricing models, and market positioning. Identified 3 underserved niches with potential for differentiation.",
+      "wordCount": 2100,
+      "tags": ["competitor", "analysis", "market"],
+      "createdAt": 1743820000000,
+      "updatedAt": 1743830000000
+    },
+    {
+      "id": "doc-4",
+      "title": "Weekly Newsletter #11",
+      "type": "newsletter",
+      "agentId": "agent-writer",
+      "projectId": "proj-2",
+      "summary": "Coverage of major open-source releases, a deep dive into retrieval-augmented generation patterns, and community spotlight on three innovative agent frameworks.",
+      "wordCount": 920,
+      "tags": ["newsletter", "weekly"],
+      "createdAt": 1743750000000,
+      "updatedAt": 1743780000000
+    },
+    {
+      "id": "doc-5",
+      "title": "2025 Content Performance Review",
+      "type": "report",
+      "agentId": "agent-writer",
+      "projectId": "proj-3",
+      "summary": "Annual review of all content produced in 2025. Newsletter open rates averaged 34%, social engagement grew 28% QoQ. Top performing content categories: technical tutorials and industry analysis.",
+      "wordCount": 1800,
+      "tags": ["review", "performance", "2025"],
+      "createdAt": 1742000000000,
+      "updatedAt": 1742000000000
+    }
+  ]
+}
