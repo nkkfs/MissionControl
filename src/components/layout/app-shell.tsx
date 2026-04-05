@@ -14,7 +14,7 @@ export function AppShell({ children }: AppShellProps) {
   const [feedCollapsed, setFeedCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="mx-auto flex h-screen max-w-[70%] overflow-hidden bg-background shadow-2xl shadow-black/50">
       {/* Sidebar */}
       <Sidebar />
 
