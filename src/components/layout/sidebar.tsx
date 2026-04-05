@@ -91,30 +91,33 @@ export function Sidebar() {
             const Icon = item.icon;
             const isActive = activePath === item.href;
 
-            const button = (
-              <button
-                key={item.label}
-                disabled={!item.enabled}
-                onClick={() => item.enabled && setActivePath(item.href)}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors mx-2",
-                  collapsed ? "justify-center px-0 mx-1" : "",
-                  isActive
-                    ? "bg-primary/10 text-primary"
-                    : item.enabled
-                      ? "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                      : "text-muted-foreground/40 cursor-not-allowed"
-                )}
-              >
+            const itemClasses = cn(
+              "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors mx-2",
+              collapsed ? "justify-center px-0 mx-1" : "",
+              isActive
+                ? "bg-primary/10 text-primary"
+                : item.enabled
+                  ? "text-muted-foreground hover:bg-secondary hover:text-foreground cursor-pointer"
+                  : "text-muted-foreground/40 cursor-not-allowed"
+            );
+
+            const content = (
+              <>
                 <Icon className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
                 {!collapsed && <span className="truncate">{item.label}</span>}
-              </button>
+              </>
             );
 
             if (collapsed) {
               return (
                 <Tooltip key={item.label}>
-                  <TooltipTrigger>{button}</TooltipTrigger>
+                  <TooltipTrigger
+                    render={<div role="button" tabIndex={0} />}
+                    className={itemClasses}
+                    onClick={() => item.enabled && setActivePath(item.href)}
+                  >
+                    {content}
+                  </TooltipTrigger>
                   <TooltipContent side="right" className="text-xs">
                     {item.label}
                   </TooltipContent>
@@ -122,7 +125,16 @@ export function Sidebar() {
               );
             }
 
-            return button;
+            return (
+              <button
+                key={item.label}
+                disabled={!item.enabled}
+                onClick={() => item.enabled && setActivePath(item.href)}
+                className={itemClasses}
+              >
+                {content}
+              </button>
+            );
           })}
         </nav>
       </aside>
