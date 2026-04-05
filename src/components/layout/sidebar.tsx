@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   CheckSquare, Bot, FileText, ShieldCheck, Users,
   Calendar, FolderKanban, Brain, BookOpen, UserCircle,
@@ -24,12 +26,12 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Approvals", icon: ShieldCheck, href: "/approvals", enabled: false },
   { label: "Council", icon: Users, href: "/council", enabled: false },
   { label: "Calendar", icon: Calendar, href: "/calendar", enabled: false },
-  { label: "Projects", icon: FolderKanban, href: "/projects", enabled: false },
+  { label: "Projects", icon: FolderKanban, href: "/projects", enabled: true },
   { label: "Memory", icon: Brain, href: "/memory", enabled: false },
   { label: "Docs", icon: BookOpen, href: "/docs", enabled: false },
   { label: "People", icon: UserCircle, href: "/people", enabled: false },
   { label: "Office", icon: Building2, href: "/office", enabled: false },
-  { label: "Team", icon: UsersRound, href: "/team", enabled: false },
+  { label: "Team", icon: UsersRound, href: "/team", enabled: true },
   { label: "System", icon: Settings, href: "/system", enabled: false },
   { label: "Radar", icon: Radar, href: "/radar", enabled: false },
   { label: "Factory", icon: Factory, href: "/factory", enabled: false },
@@ -39,7 +41,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const [activePath, setActivePath] = useState("/tasks");
+  const activePath = usePathname();
 
   useEffect(() => {
     const saved = localStorage.getItem("mc-sidebar-collapsed");
@@ -112,9 +114,8 @@ export function Sidebar() {
               return (
                 <Tooltip key={item.label}>
                   <TooltipTrigger
-                    render={<div role="button" tabIndex={0} />}
+                    render={item.enabled ? <Link href={item.href} /> : <div role="button" tabIndex={0} />}
                     className={itemClasses}
-                    onClick={() => item.enabled && setActivePath(item.href)}
                   >
                     {content}
                   </TooltipTrigger>
@@ -125,15 +126,25 @@ export function Sidebar() {
               );
             }
 
+            if (item.enabled) {
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={itemClasses}
+                >
+                  {content}
+                </Link>
+              );
+            }
+
             return (
-              <button
+              <div
                 key={item.label}
-                disabled={!item.enabled}
-                onClick={() => item.enabled && setActivePath(item.href)}
                 className={itemClasses}
               >
                 {content}
-              </button>
+              </div>
             );
           })}
         </nav>

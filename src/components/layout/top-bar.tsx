@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { Search, Pause, Settings, Wifi, WifiOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,8 @@ import { useWebSocket } from "@/lib/websocket/provider";
 import { useAgents } from "@/lib/hooks/use-agents";
 
 export function TopBar() {
+  const pathname = usePathname();
+  const pageTitle = pathname === "/team" ? "Team" : pathname === "/projects" ? "Projects" : "Tasks";
   const { connectionState } = useWebSocket();
   const { onlineCount } = useAgents();
 
@@ -14,7 +17,7 @@ export function TopBar() {
     <header className="flex h-14 items-center justify-between border-b border-border bg-surface px-4">
       {/* Left */}
       <div className="flex items-center gap-4">
-        <h1 className="text-sm font-semibold text-foreground">Tasks</h1>
+        <h1 className="text-sm font-semibold text-foreground">{pageTitle}</h1>
         {onlineCount > 0 && (
           <Badge variant="secondary" className="text-xs">
             {onlineCount} agent{onlineCount !== 1 ? "s" : ""} online
