@@ -220,3 +220,49 @@ export const APPROVAL_PRIORITY_COLORS: Record<ApprovalPriority, string> = {
   high: "var(--status-red)",
   normal: "var(--status-gray)",
 };
+
+export type WorkflowStatus = "active" | "draft" | "archived";
+export type TriggerType = "manual" | "scheduled" | "event";
+
+export interface WorkflowStep {
+  order: number;
+  title: string;
+  agentId: string;
+}
+
+export interface WorkflowTemplate {
+  id: string;
+  name: string;
+  description: string;
+  status: WorkflowStatus;
+  trigger: TriggerType;
+  triggerDetail: string;
+  steps: WorkflowStep[];
+  runCount: number;
+  lastRunAt: number | null;
+}
+
+export const WORKFLOW_STATUS_COLORS: Record<WorkflowStatus, string> = {
+  active: "var(--status-green)",
+  draft: "var(--status-gray)",
+  archived: "var(--status-gray)",
+};
+
+export const TRIGGER_COLORS: Record<TriggerType, string> = {
+  manual: "var(--status-blue)",
+  scheduled: "var(--status-amber)",
+  event: "var(--status-purple)",
+};
+
+export interface PipelineStage {
+  id: string;
+  label: string;
+  count: number;
+}
+
+export interface Pipeline {
+  id: string;
+  name: string;
+  throughputPerMinute: number;
+  stages: PipelineStage[];
+}
