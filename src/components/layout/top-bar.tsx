@@ -16,6 +16,7 @@ export function TopBar() {
     "/memory": "Memory",
     "/docs": "Docs",
     "/calendar": "Calendar",
+    "/office": "Virtual Office",
   };
   const pageTitle = PAGE_TITLES[pathname] ?? "Tasks";
   const { connectionState } = useWebSocket();

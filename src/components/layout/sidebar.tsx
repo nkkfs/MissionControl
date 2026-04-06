@@ -30,7 +30,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Memory", icon: Brain, href: "/memory", enabled: true },
   { label: "Docs", icon: BookOpen, href: "/docs", enabled: true },
   { label: "People", icon: UserCircle, href: "/people", enabled: false },
-  { label: "Office", icon: Building2, href: "/office", enabled: false },
+  { label: "Office", icon: Building2, href: "/office", enabled: true },
   { label: "Team", icon: UsersRound, href: "/team", enabled: true },
   { label: "System", icon: Settings, href: "/system", enabled: false },
   { label: "Radar", icon: Radar, href: "/radar", enabled: false },
