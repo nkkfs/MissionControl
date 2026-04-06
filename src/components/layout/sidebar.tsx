@@ -34,8 +34,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Team", icon: UsersRound, href: "/team", enabled: true },
   { label: "System", icon: Settings, href: "/system", enabled: true },
   { label: "Radar", icon: Radar, href: "/radar", enabled: true },
-  { label: "Factory", icon: Factory, href: "/factory", enabled: false },
-  { label: "Pipeline", icon: GitBranch, href: "/pipeline", enabled: false },
+  { label: "Factory", icon: Factory, href: "/factory", enabled: true },
+  { label: "Pipeline", icon: GitBranch, href: "/pipeline", enabled: true },
   { label: "Feedback", icon: MessageSquare, href: "/feedback", enabled: false },
 ];
 

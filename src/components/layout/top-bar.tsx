@@ -21,6 +21,8 @@ export function TopBar() {
     "/radar": "Radar",
     "/content": "Content",
     "/approvals": "Approvals",
+    "/factory": "Factory",
+    "/pipeline": "Pipeline",
   };
   const pageTitle = PAGE_TITLES[pathname] ?? "Tasks";
   const { connectionState } = useWebSocket();
