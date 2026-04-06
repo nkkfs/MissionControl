@@ -19,6 +19,8 @@ export function TopBar() {
     "/office": "Virtual Office",
     "/system": "System",
     "/radar": "Radar",
+    "/content": "Content",
+    "/approvals": "Approvals",
   };
   const pageTitle = PAGE_TITLES[pathname] ?? "Tasks";
   const { connectionState } = useWebSocket();
