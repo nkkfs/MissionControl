@@ -153,3 +153,19 @@ export const EVENT_STATUS_COLORS: Record<EventStatus, string> = {
   completed: "var(--status-green)",
   overdue: "var(--status-red)",
 };
+
+export type AnomalySeverity = "critical" | "warning" | "info";
+
+export interface Anomaly {
+  id: string;
+  severity: AnomalySeverity;
+  title: string;
+  description: string;
+  timestamp: number;
+}
+
+export const ANOMALY_SEVERITY_COLORS: Record<AnomalySeverity, string> = {
+  critical: "var(--status-red)",
+  warning: "var(--status-amber)",
+  info: "var(--status-blue)",
+};

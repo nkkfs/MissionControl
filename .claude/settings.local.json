@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(grep -r \"Phase 3\\\\|phase 3\" D:ProjektyMissionControl --include=*.md --include=*.txt --include=*.json)"
+    ]
+  }
+}
