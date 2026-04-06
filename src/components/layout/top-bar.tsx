@@ -23,6 +23,8 @@ export function TopBar() {
     "/approvals": "Approvals",
     "/factory": "Factory",
     "/pipeline": "Pipeline",
+    "/people": "People",
+    "/feedback": "Feedback",
   };
   const pageTitle = PAGE_TITLES[pathname] ?? "Tasks";
   const { connectionState } = useWebSocket();

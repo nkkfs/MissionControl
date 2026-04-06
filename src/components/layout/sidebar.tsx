@@ -29,14 +29,14 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Projects", icon: FolderKanban, href: "/projects", enabled: true },
   { label: "Memory", icon: Brain, href: "/memory", enabled: true },
   { label: "Docs", icon: BookOpen, href: "/docs", enabled: true },
-  { label: "People", icon: UserCircle, href: "/people", enabled: false },
+  { label: "People", icon: UserCircle, href: "/people", enabled: true },
   { label: "Office", icon: Building2, href: "/office", enabled: true },
   { label: "Team", icon: UsersRound, href: "/team", enabled: true },
   { label: "System", icon: Settings, href: "/system", enabled: true },
   { label: "Radar", icon: Radar, href: "/radar", enabled: true },
   { label: "Factory", icon: Factory, href: "/factory", enabled: true },
   { label: "Pipeline", icon: GitBranch, href: "/pipeline", enabled: true },
-  { label: "Feedback", icon: MessageSquare, href: "/feedback", enabled: false },
+  { label: "Feedback", icon: MessageSquare, href: "/feedback", enabled: true },
 ];
 
 export function Sidebar() {
