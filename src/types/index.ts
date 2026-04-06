@@ -266,3 +266,53 @@ export interface Pipeline {
   throughputPerMinute: number;
   stages: PipelineStage[];
 }
+
+export type PersonRole = "client" | "reviewer" | "owner" | "observer";
+
+export interface Person {
+  id: string;
+  name: string;
+  role: PersonRole;
+  email: string;
+  active: boolean;
+  projectIds: string[];
+  createdAt: number;
+}
+
+export const PERSON_ROLE_COLORS: Record<PersonRole, string> = {
+  client: "var(--status-amber)",
+  reviewer: "var(--status-blue)",
+  owner: "var(--status-green)",
+  observer: "var(--status-gray)",
+};
+
+export const PERSON_ROLE_LABELS: Record<PersonRole, string> = {
+  client: "Client",
+  reviewer: "Reviewer",
+  owner: "Owner",
+  observer: "Observer",
+};
+
+export type FeedbackStatus = "new" | "read" | "addressed";
+
+export interface FeedbackEntry {
+  id: string;
+  authorId: string;
+  contentId: string;
+  rating: number;
+  status: FeedbackStatus;
+  comment: string;
+  submittedAt: number;
+}
+
+export const FEEDBACK_STATUS_COLORS: Record<FeedbackStatus, string> = {
+  new: "var(--status-amber)",
+  read: "var(--status-blue)",
+  addressed: "var(--status-green)",
+};
+
+export const FEEDBACK_STATUS_LABELS: Record<FeedbackStatus, string> = {
+  new: "New",
+  read: "Read",
+  addressed: "Addressed",
+};
