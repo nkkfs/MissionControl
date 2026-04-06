@@ -21,10 +21,10 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Tasks", icon: CheckSquare, href: "/tasks", enabled: true },
-  { label: "Agents", icon: Bot, href: "/agents", enabled: false },
+  { label: "Agents", icon: Bot, href: "/agents", enabled: true },
   { label: "Content", icon: FileText, href: "/content", enabled: true },
   { label: "Approvals", icon: ShieldCheck, href: "/approvals", enabled: true },
-  { label: "Council", icon: Users, href: "/council", enabled: false },
+  { label: "Council", icon: Users, href: "/council", enabled: true },
   { label: "Calendar", icon: Calendar, href: "/calendar", enabled: true },
   { label: "Projects", icon: FolderKanban, href: "/projects", enabled: true },
   { label: "Memory", icon: Brain, href: "/memory", enabled: true },

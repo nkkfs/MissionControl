@@ -25,6 +25,8 @@ export function TopBar() {
     "/pipeline": "Pipeline",
     "/people": "People",
     "/feedback": "Feedback",
+    "/agents": "Agents",
+    "/council": "Council",
   };
   const pageTitle = PAGE_TITLES[pathname] ?? "Tasks";
   const { connectionState } = useWebSocket();
