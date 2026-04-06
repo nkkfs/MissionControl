@@ -169,3 +169,54 @@ export const ANOMALY_SEVERITY_COLORS: Record<AnomalySeverity, string> = {
   warning: "var(--status-amber)",
   info: "var(--status-blue)",
 };
+
+export type ContentStage = "draft" | "review" | "approved" | "published";
+export type ContentType = "article" | "newsletter" | "report" | "post";
+
+export interface ContentItem {
+  id: string;
+  title: string;
+  type: ContentType;
+  stage: ContentStage;
+  agentId: string;
+  projectId: string;
+  wordCount: number;
+  summary: string;
+  updatedAt: number;
+}
+
+export const CONTENT_STAGE_ORDER = ["draft", "review", "approved", "published"] as const;
+
+export const CONTENT_STAGE_COLORS: Record<ContentStage, string> = {
+  draft: "var(--status-gray)",
+  review: "var(--status-amber)",
+  approved: "var(--status-blue)",
+  published: "var(--status-green)",
+};
+
+export const CONTENT_STAGE_LABELS: Record<ContentStage, string> = {
+  draft: "Draft",
+  review: "In Review",
+  approved: "Approved",
+  published: "Published",
+};
+
+export type ApprovalPriority = "high" | "normal";
+export type ApprovalStatus = "pending" | "approved" | "rejected";
+
+export interface ApprovalRequest {
+  id: string;
+  contentId: string;
+  title: string;
+  requesterAgentId: string;
+  priority: ApprovalPriority;
+  status: ApprovalStatus;
+  requestedAt: number;
+  message: string;
+  decidedAt: number | null;
+}
+
+export const APPROVAL_PRIORITY_COLORS: Record<ApprovalPriority, string> = {
+  high: "var(--status-red)",
+  normal: "var(--status-gray)",
+};
