@@ -1,0 +1,76 @@
+{
+  "feedback": [
+    {
+      "id": "fb-001",
+      "authorId": "person-001",
+      "contentId": "content-001",
+      "rating": 5,
+      "status": "new",
+      "comment": "Really strong synthesis — especially the sector-level breakdown. This is exactly what we needed for the board deck.",
+      "submittedAt": 1743960000000
+    },
+    {
+      "id": "fb-002",
+      "authorId": "person-002",
+      "contentId": "content-005",
+      "rating": 3,
+      "status": "read",
+      "comment": "Good coverage, but the intro paragraph felt rushed. Consider a stronger hook for next week.",
+      "submittedAt": 1743700000000
+    },
+    {
+      "id": "fb-003",
+      "authorId": "person-003",
+      "contentId": "content-004",
+      "rating": 5,
+      "status": "addressed",
+      "comment": "Perfect — distribute to the analyst list as planned.",
+      "submittedAt": 1743880000000
+    },
+    {
+      "id": "fb-004",
+      "authorId": "person-004",
+      "contentId": "content-005",
+      "rating": 4,
+      "status": "new",
+      "comment": "Solid issue overall. Charts would lift this from good to great.",
+      "submittedAt": 1743930000000
+    },
+    {
+      "id": "fb-005",
+      "authorId": "person-002",
+      "contentId": "content-008",
+      "rating": 4,
+      "status": "read",
+      "comment": "Macro commentary is sharp. One typo in the FX section — I flagged it inline.",
+      "submittedAt": 1743880000000
+    },
+    {
+      "id": "fb-006",
+      "authorId": "person-001",
+      "contentId": "content-004",
+      "rating": 5,
+      "status": "addressed",
+      "comment": "Brief is exactly the level of depth we wanted.",
+      "submittedAt": 1743870000000
+    },
+    {
+      "id": "fb-007",
+      "authorId": "person-003",
+      "contentId": "content-006",
+      "rating": 2,
+      "status": "new",
+      "comment": "Archive index is functional but feels sparse. Add tags and topic clusters next iteration.",
+      "submittedAt": 1743940000000
+    },
+    {
+      "id": "fb-008",
+      "authorId": "person-002",
+      "contentId": "content-001",
+      "rating": 5,
+      "status": "addressed",
+      "comment": "Ready to go out. Nice work on the forward-looking section.",
+      "submittedAt": 1743890000000
+    }
+  ]
+}

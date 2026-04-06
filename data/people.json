@@ -1,0 +1,58 @@
+{
+  "people": [
+    {
+      "id": "person-001",
+      "name": "Jamie Martin",
+      "role": "client",
+      "email": "jamie@acme.co",
+      "active": true,
+      "projectIds": ["proj-1"],
+      "createdAt": 1700000000000
+    },
+    {
+      "id": "person-002",
+      "name": "Riya Kumar",
+      "role": "reviewer",
+      "email": "riya@missioncontrol.local",
+      "active": true,
+      "projectIds": ["proj-2", "proj-1"],
+      "createdAt": 1705000000000
+    },
+    {
+      "id": "person-003",
+      "name": "Sam Lee",
+      "role": "owner",
+      "email": "sam@missioncontrol.local",
+      "active": true,
+      "projectIds": ["proj-1", "proj-2", "proj-3"],
+      "createdAt": 1690000000000
+    },
+    {
+      "id": "person-004",
+      "name": "Priya Desai",
+      "role": "client",
+      "email": "priya@northstar.io",
+      "active": true,
+      "projectIds": ["proj-2"],
+      "createdAt": 1710000000000
+    },
+    {
+      "id": "person-005",
+      "name": "Daniel Osei",
+      "role": "reviewer",
+      "email": "daniel@missioncontrol.local",
+      "active": false,
+      "projectIds": ["proj-3"],
+      "createdAt": 1695000000000
+    },
+    {
+      "id": "person-006",
+      "name": "Mei Tanaka",
+      "role": "observer",
+      "email": "mei@missioncontrol.local",
+      "active": true,
+      "projectIds": ["proj-1", "proj-2"],
+      "createdAt": 1720000000000
+    }
+  ]
+}
