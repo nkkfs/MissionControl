@@ -316,3 +316,45 @@ export const FEEDBACK_STATUS_LABELS: Record<FeedbackStatus, string> = {
   read: "Read",
   addressed: "Addressed",
 };
+
+export type CouncilVote = "approve" | "reject" | "abstain";
+export type CouncilOutcome = "approved" | "rejected" | "pending";
+
+export interface CouncilBallot {
+  agentId: string;
+  vote: CouncilVote;
+}
+
+export interface CouncilDecision {
+  id: string;
+  title: string;
+  initiatorAgentId: string;
+  outcome: CouncilOutcome;
+  reason: string;
+  votes: CouncilBallot[];
+  decidedAt: number;
+}
+
+export const COUNCIL_OUTCOME_COLORS: Record<CouncilOutcome, string> = {
+  approved: "var(--status-green)",
+  rejected: "var(--status-red)",
+  pending: "var(--status-amber)",
+};
+
+export const COUNCIL_OUTCOME_LABELS: Record<CouncilOutcome, string> = {
+  approved: "Approved",
+  rejected: "Rejected",
+  pending: "Pending",
+};
+
+export const COUNCIL_VOTE_COLORS: Record<CouncilVote, string> = {
+  approve: "var(--status-green)",
+  reject: "var(--status-red)",
+  abstain: "var(--status-gray)",
+};
+
+export const COUNCIL_VOTE_LABELS: Record<CouncilVote, string> = {
+  approve: "Approve",
+  reject: "Reject",
+  abstain: "Abstain",
+};
