@@ -1,0 +1,64 @@
+{
+  "templates": [
+    {
+      "id": "wf-newsletter",
+      "name": "Newsletter Build",
+      "description": "Weekly newsletter generation — collect, draft, review, publish.",
+      "status": "active",
+      "trigger": "scheduled",
+      "triggerDetail": "Fri 09:00",
+      "steps": [
+        { "order": 1, "title": "Collect sources", "agentId": "agent-research" },
+        { "order": 2, "title": "Draft body", "agentId": "agent-writer" },
+        { "order": 3, "title": "Review", "agentId": "agent-main" },
+        { "order": 4, "title": "Publish", "agentId": "agent-writer" }
+      ],
+      "runCount": 24,
+      "lastRunAt": 1743890000000
+    },
+    {
+      "id": "wf-research-digest",
+      "name": "Research Digest",
+      "description": "On-demand research brief — seed query, synthesize, export.",
+      "status": "active",
+      "trigger": "manual",
+      "triggerDetail": "Analyst run",
+      "steps": [
+        { "order": 1, "title": "Seed query", "agentId": "agent-main" },
+        { "order": 2, "title": "Summarize sources", "agentId": "agent-research" },
+        { "order": 3, "title": "Export brief", "agentId": "agent-writer" }
+      ],
+      "runCount": 8,
+      "lastRunAt": 1743820000000
+    },
+    {
+      "id": "wf-market-snapshot",
+      "name": "Market Snapshot",
+      "description": "Event-triggered market snapshot when volatility exceeds threshold.",
+      "status": "active",
+      "trigger": "event",
+      "triggerDetail": "VIX > 25",
+      "steps": [
+        { "order": 1, "title": "Fetch indices", "agentId": "agent-research" },
+        { "order": 2, "title": "Flag anomalies", "agentId": "agent-main" },
+        { "order": 3, "title": "Write summary", "agentId": "agent-writer" }
+      ],
+      "runCount": 3,
+      "lastRunAt": 1743700000000
+    },
+    {
+      "id": "wf-content-archiver",
+      "name": "Content Archiver",
+      "description": "Archive and index all published content at month end.",
+      "status": "draft",
+      "trigger": "scheduled",
+      "triggerDetail": "Last day of month",
+      "steps": [
+        { "order": 1, "title": "Collect published items", "agentId": "agent-writer" },
+        { "order": 2, "title": "Generate index", "agentId": "agent-main" }
+      ],
+      "runCount": 0,
+      "lastRunAt": null
+    }
+  ]
+}

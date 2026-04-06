@@ -1,0 +1,25 @@
+{
+  "pipelines": [
+    {
+      "id": "pipe-newsletter",
+      "name": "Newsletter Pipeline",
+      "throughputPerMinute": 2.4,
+      "stages": [
+        { "id": "sources", "label": "Sources", "count": 5 },
+        { "id": "draft", "label": "Draft", "count": 3 },
+        { "id": "review", "label": "Review", "count": 1 },
+        { "id": "publish", "label": "Publish", "count": 0 }
+      ]
+    },
+    {
+      "id": "pipe-research",
+      "name": "Research Digest",
+      "throughputPerMinute": 0.8,
+      "stages": [
+        { "id": "queries", "label": "Queries", "count": 4 },
+        { "id": "synthesis", "label": "Synthesis", "count": 3 },
+        { "id": "brief", "label": "Brief", "count": 2 }
+      ]
+    }
+  ]
+}
