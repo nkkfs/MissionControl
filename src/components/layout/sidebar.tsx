@@ -88,14 +88,19 @@ export function Sidebar() {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-2">
+        <nav
+          className={cn(
+            "flex-1 overflow-y-auto overflow-x-hidden py-2",
+            collapsed ? "px-1" : "px-2"
+          )}
+        >
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = activePath === item.href;
 
             const itemClasses = cn(
-              "flex w-full items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors mx-2",
-              collapsed ? "justify-center px-0 mx-1 py-2" : "",
+              "flex w-full items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors",
+              collapsed ? "justify-center px-0 py-2" : "",
               isActive
                 ? "bg-primary/10 text-primary"
                 : item.enabled
