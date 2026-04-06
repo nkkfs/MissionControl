@@ -105,11 +105,22 @@ export class OpenClawClient {
   }
 
   private handleChallenge(payload: Record<string, unknown>): void {
+    // Gateway schema: minProtocol/maxProtocol/client required; auth context
+    // (deviceToken, nonce, role, scopes) is sent under a nested `auth` object.
     this.send("connect", {
-      role: "operator",
-      scopes: ["operator.read", "operator.write"],
-      deviceToken: this.deviceToken,
-      nonce: payload.nonce,
+      minProtocol: 1,
+      maxProtocol: 1,
+      client: { name: "mission-control", version: "0.1.0" },
+      auth: {
+        role: "operator",
+        scopes: ["operator.read", "operator.write"],
+        deviceToken: this.deviceToken,
+        nonce: payload.nonce,
+      },
+    }).catch(() => {
+      // Swallow rejections from the handshake so they don't surface as
+      // unhandled promise errors in the dev overlay; the connection state
+      // will flip to "disconnected" via the socket close handler.
     });
   }
 
