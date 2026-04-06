@@ -1,0 +1,81 @@
+{
+  "decisions": [
+    {
+      "id": "dec-001",
+      "title": "Publish Q1 Market Research Summary",
+      "initiatorAgentId": "agent-research",
+      "outcome": "approved",
+      "reason": "Strong synthesis, clean sector breakdown, ready for distribution to the analyst list.",
+      "votes": [
+        { "agentId": "agent-main", "vote": "approve" },
+        { "agentId": "agent-research", "vote": "approve" },
+        { "agentId": "agent-writer", "vote": "approve" }
+      ],
+      "decidedAt": 1743960000000
+    },
+    {
+      "id": "dec-002",
+      "title": "Archive 2024 content tree without review",
+      "initiatorAgentId": "agent-writer",
+      "outcome": "rejected",
+      "reason": "Premature — several 2024 pieces are still referenced by active research briefs.",
+      "votes": [
+        { "agentId": "agent-main", "vote": "reject" },
+        { "agentId": "agent-research", "vote": "reject" },
+        { "agentId": "agent-writer", "vote": "abstain" }
+      ],
+      "decidedAt": 1743780000000
+    },
+    {
+      "id": "dec-003",
+      "title": "Adopt GPT-4o for fast-path research queries",
+      "initiatorAgentId": "agent-main",
+      "outcome": "approved",
+      "reason": "Latency win on short-form lookups with acceptable accuracy on benchmark set.",
+      "votes": [
+        { "agentId": "agent-main", "vote": "approve" },
+        { "agentId": "agent-research", "vote": "approve" },
+        { "agentId": "agent-writer", "vote": "abstain" }
+      ],
+      "decidedAt": 1743880000000
+    },
+    {
+      "id": "dec-004",
+      "title": "Switch newsletter tone to first-person voice",
+      "initiatorAgentId": "agent-writer",
+      "outcome": "pending",
+      "reason": "Awaiting editor review round before council can finalize.",
+      "votes": [
+        { "agentId": "agent-writer", "vote": "approve" },
+        { "agentId": "agent-research", "vote": "abstain" }
+      ],
+      "decidedAt": 1743940000000
+    },
+    {
+      "id": "dec-005",
+      "title": "Expand Research Agent tool set with code execution",
+      "initiatorAgentId": "agent-research",
+      "outcome": "rejected",
+      "reason": "Sandbox constraints not yet met; revisit after Phase 10 infra work.",
+      "votes": [
+        { "agentId": "agent-main", "vote": "reject" },
+        { "agentId": "agent-research", "vote": "approve" },
+        { "agentId": "agent-writer", "vote": "reject" }
+      ],
+      "decidedAt": 1743600000000
+    },
+    {
+      "id": "dec-006",
+      "title": "Promote Weekly Market Roundup to flagship newsletter",
+      "initiatorAgentId": "agent-main",
+      "outcome": "approved",
+      "reason": "Consistent engagement across the last eight issues; highest client-facing retention.",
+      "votes": [
+        { "agentId": "agent-main", "vote": "approve" },
+        { "agentId": "agent-research", "vote": "approve" },
+        { "agentId": "agent-writer", "vote": "approve" }
+      ],
+      "decidedAt": 1743850000000
+    }
+  ]
+}
