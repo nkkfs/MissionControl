@@ -1,0 +1,59 @@
+{
+  "approvals": [
+    {
+      "id": "approval-001",
+      "contentId": "content-001",
+      "title": "Q1 Market Research Summary",
+      "requesterAgentId": "agent-research",
+      "priority": "high",
+      "status": "pending",
+      "requestedAt": 1743897600000,
+      "message": "Final quarterly summary ready. Flagged high-priority because the investor newsletter goes out Friday.",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-002",
+      "contentId": "content-008",
+      "title": "Macro Signals Weekly",
+      "requesterAgentId": "agent-research",
+      "priority": "normal",
+      "status": "pending",
+      "requestedAt": 1743920000000,
+      "message": "Weekly macro briefing ready for review. No material changes to format.",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-003",
+      "contentId": "content-002",
+      "title": "Weekly Market Roundup #14",
+      "requesterAgentId": "agent-writer",
+      "priority": "normal",
+      "status": "pending",
+      "requestedAt": 1743940000000,
+      "message": "Draft newsletter ready for a first-pass review before the Research Agent fills in numbers.",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-004",
+      "contentId": "content-004",
+      "title": "AI Infrastructure Brief",
+      "requesterAgentId": "agent-research",
+      "priority": "high",
+      "status": "approved",
+      "requestedAt": 1743860000000,
+      "message": "Brief ready for signoff — distribution to analyst list on approval.",
+      "decidedAt": 1743880000000
+    },
+    {
+      "id": "approval-005",
+      "contentId": "content-005",
+      "title": "Weekly Market Roundup #13",
+      "requesterAgentId": "agent-writer",
+      "priority": "normal",
+      "status": "approved",
+      "requestedAt": 1743580000000,
+      "message": "Final copy ready for publication.",
+      "decidedAt": 1743600000000
+    }
+  ]
+}

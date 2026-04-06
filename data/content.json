@@ -1,0 +1,92 @@
+{
+  "items": [
+    {
+      "id": "content-001",
+      "title": "Q1 Market Research Summary",
+      "type": "report",
+      "stage": "review",
+      "agentId": "agent-research",
+      "projectId": "proj-1",
+      "wordCount": 1240,
+      "summary": "Executive summary of Q1 2026 market trends with sector-level breakdowns and forward outlook.",
+      "updatedAt": 1743897600000
+    },
+    {
+      "id": "content-002",
+      "title": "Weekly Market Roundup #14",
+      "type": "newsletter",
+      "stage": "draft",
+      "agentId": "agent-writer",
+      "projectId": "proj-2",
+      "wordCount": 830,
+      "summary": "Weekly pulse on movers, shakers, and macro signals. In progress — awaiting research sources.",
+      "updatedAt": 1743940000000
+    },
+    {
+      "id": "content-003",
+      "title": "Fintech Quarterly Deep Dive",
+      "type": "article",
+      "stage": "draft",
+      "agentId": "agent-writer",
+      "projectId": "proj-1",
+      "wordCount": 2180,
+      "summary": "Long-form analysis of the Q1 fintech landscape with emphasis on embedded finance and neobanks.",
+      "updatedAt": 1743910000000
+    },
+    {
+      "id": "content-004",
+      "title": "AI Infrastructure Brief",
+      "type": "report",
+      "stage": "approved",
+      "agentId": "agent-research",
+      "projectId": "proj-1",
+      "wordCount": 950,
+      "summary": "Analyst-ready briefing on GPU supply, foundry capacity, and data center buildout.",
+      "updatedAt": 1743880000000
+    },
+    {
+      "id": "content-005",
+      "title": "Weekly Market Roundup #13",
+      "type": "newsletter",
+      "stage": "published",
+      "agentId": "agent-writer",
+      "projectId": "proj-2",
+      "wordCount": 790,
+      "summary": "Published on schedule. Covered inflation surprises and central bank commentary.",
+      "updatedAt": 1743600000000
+    },
+    {
+      "id": "content-006",
+      "title": "2025 Content Archive Index",
+      "type": "post",
+      "stage": "published",
+      "agentId": "agent-writer",
+      "projectId": "proj-3",
+      "wordCount": 420,
+      "summary": "Auto-generated index of all 2025 content organized by month and topic tags.",
+      "updatedAt": 1742000000000
+    },
+    {
+      "id": "content-007",
+      "title": "Weekly Market Roundup #15 (Preview)",
+      "type": "newsletter",
+      "stage": "draft",
+      "agentId": "agent-writer",
+      "projectId": "proj-2",
+      "wordCount": 210,
+      "summary": "Early outline for upcoming issue. Needs source material from Research Agent.",
+      "updatedAt": 1743950000000
+    },
+    {
+      "id": "content-008",
+      "title": "Macro Signals Weekly",
+      "type": "report",
+      "stage": "review",
+      "agentId": "agent-research",
+      "projectId": "proj-1",
+      "wordCount": 1520,
+      "summary": "Rates, FX, and commodity snapshots with trend commentary. Awaiting final review.",
+      "updatedAt": 1743920000000
+    }
+  ]
+}
