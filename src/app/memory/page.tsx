@@ -1,4 +1,5 @@
 import { MemoryList } from "@/components/memory/memory-list";
+import { DemoBanner } from "@/components/ui/demo-banner";
 
 export default function MemoryPage() {
   return (
@@ -8,6 +9,9 @@ export default function MemoryPage() {
         <p className="text-xs text-muted-foreground">
           Agent memories and knowledge base
         </p>
+      </div>
+      <div className="mb-6">
+        <DemoBanner reason="Gateway has not implemented memory.list yet. Showing local fixture data." />
       </div>
       <MemoryList />
     </div>

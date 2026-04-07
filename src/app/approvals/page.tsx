@@ -1,4 +1,5 @@
 import { ApprovalsView } from "@/components/approvals/approvals-view";
+import { DemoBanner } from "@/components/ui/demo-banner";
 
 export default function ApprovalsPage() {
   return (
@@ -8,6 +9,9 @@ export default function ApprovalsPage() {
         <p className="text-xs text-muted-foreground">
           Pending review requests from the workforce
         </p>
+      </div>
+      <div className="mb-6">
+        <DemoBanner reason="Gateway has not implemented approvals.list yet. Showing local fixture data." />
       </div>
       <ApprovalsView />
     </div>

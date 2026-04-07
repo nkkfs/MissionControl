@@ -1,4 +1,5 @@
 import { FeedbackInbox } from "@/components/feedback/feedback-inbox";
+import { DemoBanner } from "@/components/ui/demo-banner";
 
 export default function FeedbackPage() {
   return (
@@ -8,6 +9,9 @@ export default function FeedbackPage() {
         <p className="text-xs text-muted-foreground">
           Reviews and comments on content
         </p>
+      </div>
+      <div className="mb-6">
+        <DemoBanner reason="Gateway has not implemented feedback.list yet. Showing local fixture data." />
       </div>
       <FeedbackInbox />
     </div>

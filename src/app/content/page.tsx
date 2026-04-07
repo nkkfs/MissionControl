@@ -1,4 +1,5 @@
 import { ContentBoard } from "@/components/content/content-board";
+import { DemoBanner } from "@/components/ui/demo-banner";
 
 export default function ContentPage() {
   return (
@@ -8,6 +9,9 @@ export default function ContentPage() {
         <p className="text-xs text-muted-foreground">
           Content pipeline by production stage
         </p>
+      </div>
+      <div className="mb-6">
+        <DemoBanner reason="Gateway has not implemented content.list yet. Showing local fixture data." />
       </div>
       <ContentBoard />
     </div>

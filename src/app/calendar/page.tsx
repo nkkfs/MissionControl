@@ -1,4 +1,5 @@
 import { EventTimeline } from "@/components/calendar/event-timeline";
+import { DemoBanner } from "@/components/ui/demo-banner";
 
 export default function CalendarPage() {
   return (
@@ -8,6 +9,9 @@ export default function CalendarPage() {
         <p className="text-xs text-muted-foreground">
           Schedule and upcoming events
         </p>
+      </div>
+      <div className="mb-6">
+        <DemoBanner reason="Gateway has not implemented schedule.list yet. Showing local fixture data." />
       </div>
       <EventTimeline />
     </div>

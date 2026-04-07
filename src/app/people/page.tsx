@@ -1,4 +1,5 @@
 import { PeopleGrid } from "@/components/people/people-grid";
+import { DemoBanner } from "@/components/ui/demo-banner";
 
 export default function PeoplePage() {
   return (
@@ -8,6 +9,9 @@ export default function PeoplePage() {
         <p className="text-xs text-muted-foreground">
           Humans connected to this workspace
         </p>
+      </div>
+      <div className="mb-6">
+        <DemoBanner reason="Gateway has not implemented people.list yet. Showing local fixture data." />
       </div>
       <PeopleGrid />
     </div>

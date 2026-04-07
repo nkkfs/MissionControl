@@ -1,4 +1,5 @@
 import { FactoryGrid } from "@/components/factory/factory-grid";
+import { DemoBanner } from "@/components/ui/demo-banner";
 
 export default function FactoryPage() {
   return (
@@ -8,6 +9,9 @@ export default function FactoryPage() {
         <p className="text-xs text-muted-foreground">
           Reusable workflow templates
         </p>
+      </div>
+      <div className="mb-6">
+        <DemoBanner reason="Gateway has not implemented factory.list yet. Showing local fixture data." />
       </div>
       <FactoryGrid />
     </div>
