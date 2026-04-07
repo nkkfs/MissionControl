@@ -26,6 +26,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     maxProtocol: 3,
     heartbeatIntervalMs: 15000,
     autoReconnect: true,
+    deviceToken: "",
   },
   behavior: {
     showDemoBanner: true,
@@ -43,9 +44,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
  * any older payload is ignored and replaced on next save.
  *
  * v3: default mode switched from "operator" to "control-ui" after the
- * gateway tightened its `client.mode` schema.
+ *     gateway tightened its `client.mode` schema.
+ * v4: added `deviceToken` field as the single source of truth for the
+ *     gateway-issued device token (replaces the legacy `mc-device-token`
+ *     localStorage key).
  */
-export const SETTINGS_STORAGE_KEY = "mc-settings-v3";
+export const SETTINGS_STORAGE_KEY = "mc-settings-v4";
 
 /** Merge a partial settings patch on top of a base, preserving all sections. */
 export function mergeSettings(

@@ -28,13 +28,31 @@ interface SettingsContextValue {
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
+/** Legacy key that held just the device token before v4. */
+const LEGACY_DEVICE_TOKEN_KEY = "mc-device-token";
+
 function loadSettings(): AppSettings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
     const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
-    if (!raw) return DEFAULT_SETTINGS;
-    const parsed = JSON.parse(raw) as Partial<AppSettings>;
-    return mergeSettings(DEFAULT_SETTINGS, parsed);
+    const parsed = raw ? (JSON.parse(raw) as Partial<AppSettings>) : {};
+    const merged = mergeSettings(DEFAULT_SETTINGS, parsed);
+
+    // One-time migration: if there's no token in the settings store but
+    // the legacy key is populated, pull it in and clear the legacy entry.
+    if (!merged.connection.deviceToken) {
+      try {
+        const legacy = window.localStorage.getItem(LEGACY_DEVICE_TOKEN_KEY);
+        if (legacy) {
+          merged.connection = { ...merged.connection, deviceToken: legacy };
+          window.localStorage.removeItem(LEGACY_DEVICE_TOKEN_KEY);
+        }
+      } catch {
+        // migration is best-effort; ignore
+      }
+    }
+
+    return merged;
   } catch {
     return DEFAULT_SETTINGS;
   }

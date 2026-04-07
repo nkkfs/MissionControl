@@ -29,6 +29,14 @@ export interface ConnectionSettings {
   heartbeatIntervalMs: number;
   /** Whether to automatically reconnect after a dropped connection. */
   autoReconnect: boolean;
+  /**
+   * Device token issued by the gateway on the first successful handshake.
+   * Sent as `auth.deviceToken` on reconnects. Empty string means "no token
+   * yet — ask for one on the next hello-ok". The user can also paste a
+   * token here manually from the Settings page if their gateway requires
+   * a pre-provisioned one.
+   */
+  deviceToken: string;
 }
 
 export interface BehaviorSettings {

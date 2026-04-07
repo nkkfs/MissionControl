@@ -36,6 +36,7 @@ export function TestConnectionPanel() {
       maxProtocol: settings.connection.maxProtocol,
       heartbeatIntervalMs: settings.connection.heartbeatIntervalMs,
       autoReconnect: settings.connection.autoReconnect,
+      deviceToken: settings.connection.deviceToken,
     });
     setStatus({ kind: "done", result });
   };
@@ -107,6 +108,9 @@ function TestResultCard({ result }: { result: TestConnectionResult }) {
               ? `, gateway tick ${result.tickIntervalMs} ms`
               : ""}
           </p>
+          <p className="mt-1 font-mono text-[11px] text-muted-foreground/80">
+            device.id = {result.deviceId}
+          </p>
         </div>
       </div>
     );
@@ -135,6 +139,11 @@ function TestResultCard({ result }: { result: TestConnectionResult }) {
         <p className="mt-0.5 break-words text-[11px] text-muted-foreground">
           {result.message} ({result.durationMs} ms)
         </p>
+        {result.hint && (
+          <p className="mt-1 break-words text-[11px] text-muted-foreground/80">
+            {result.hint}
+          </p>
+        )}
         <ul className="mt-2 list-disc space-y-0.5 pl-4 text-[11px] text-muted-foreground/80">
           {stageHints(result.stage).map((hint) => (
             <li key={hint}>{hint}</li>
@@ -147,6 +156,10 @@ function TestResultCard({ result }: { result: TestConnectionResult }) {
 
 function stageLabel(stage: Exclude<TestConnectionResult, { ok: true }>["stage"]) {
   switch (stage) {
+    case "insecure":
+      return "browser not in a secure context";
+    case "identity":
+      return "device identity failed";
     case "open":
       return "could not open socket";
     case "handshake":
@@ -162,16 +175,27 @@ function stageHints(
   stage: Exclude<TestConnectionResult, { ok: true }>["stage"],
 ): string[] {
   switch (stage) {
+    case "insecure":
+      return [
+        "Ed25519 keys can only be generated over https:// or http://localhost.",
+        "Expose the app via Tailscale Serve, Nginx + TLS, or access it from the host machine directly.",
+      ];
+    case "identity":
+      return [
+        "This browser may not yet support Ed25519 in WebCrypto — update Chrome/Edge/Firefox/Safari to the latest version.",
+        "If the saved keypair is corrupted, use 'Clear Device Identity' below and try again.",
+      ];
     case "open":
       return [
         "Is the OpenClaw gateway process actually running?",
         "Is the URL host and port correct for your network?",
-        "If the URL is ws:// on a remote host, the browser may be blocking mixed content — use wss:// or run the app on the same host.",
+        "If the page is served over https://, the gateway URL must be wss:// (browsers block mixed content).",
       ];
     case "handshake":
       return [
-        "Does the gateway support protocol v3?",
-        "Does it accept the role and scopes configured above?",
+        "Does the gateway support protocol v3 with device identity?",
+        "Does it accept the Client ID and Client Mode configured above?",
+        "If the gateway requires a pre-provisioned token, paste one in the Device Token field.",
       ];
     case "timeout":
       return [

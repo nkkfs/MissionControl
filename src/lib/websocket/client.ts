@@ -1,18 +1,39 @@
 import type { WsMessage, WsRequest, WsResponse, WsEvent } from "./types";
 import { version as clientVersion } from "../../../package.json";
+import {
+  clearDeviceIdentity,
+  DeviceIdentityError,
+  getOrCreateDeviceIdentity,
+  signChallenge,
+  type DeviceIdentity,
+} from "./device-identity";
 
 type EventHandler = (payload: Record<string, unknown>) => void;
 type ConnectionHandler = (state: "connected" | "disconnected" | "error") => void;
+type TokenHandler = (token: string) => void;
+type ClientErrorHandler = (err: ClientError) => void;
+
+/**
+ * Structured error surfaced to the UI so non-technical users get a clear
+ * explanation of what went wrong during the handshake. `code` is stable
+ * and suitable for switch-on-value; `message` is human-readable.
+ */
+export interface ClientError {
+  code:
+    | "insecure-context"
+    | "device-identity"
+    | "handshake-rejected"
+    | "connect-failed"
+    | "socket-error";
+  message: string;
+  /** Optional hint the UI can show below the main message. */
+  hint?: string;
+}
 
 /**
  * Full runtime configuration for an OpenClaw client instance. All values
  * are normally sourced from the user settings store, so changing any of
  * them causes the provider to dispose the old client and create a new one.
- *
- * The protocol-v3 `connect` payload only allows a small whitelist of
- * `client.id` and `client.mode` values (the gateway validates them as a
- * JSON-schema `anyOf` of constants). The settings page restricts inputs
- * to the known-good options listed in `KNOWN_CLIENT_IDS` / `KNOWN_MODES`.
  */
 export interface OpenClawClientConfig {
   url: string;
@@ -25,6 +46,11 @@ export interface OpenClawClientConfig {
   maxProtocol: number;
   heartbeatIntervalMs: number;
   autoReconnect: boolean;
+  /**
+   * Optional device token obtained from a previous successful handshake.
+   * Sent as `auth.deviceToken` on reconnects. Empty string means "no token".
+   */
+  deviceToken: string;
 }
 
 /** Known client.id values accepted by the OpenClaw gateway. */
@@ -43,24 +69,34 @@ export const KNOWN_CLIENT_MODES = [
   "cli",
 ] as const;
 
-const DEVICE_TOKEN_KEY = "mc-device-token";
+/**
+ * Legacy single-key storage used before the deviceToken moved into the
+ * settings store. Kept so existing installs migrate cleanly.
+ */
+const LEGACY_DEVICE_TOKEN_KEY = "mc-device-token";
 
-export function readSavedDeviceToken(): string | null {
+export function readLegacyDeviceToken(): string | null {
   if (typeof window === "undefined") return null;
   try {
-    return window.localStorage.getItem(DEVICE_TOKEN_KEY);
+    return window.localStorage.getItem(LEGACY_DEVICE_TOKEN_KEY);
   } catch {
     return null;
   }
 }
 
-export function clearSavedDeviceToken(): void {
+export function clearLegacyDeviceToken(): void {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.removeItem(DEVICE_TOKEN_KEY);
+    window.localStorage.removeItem(LEGACY_DEVICE_TOKEN_KEY);
   } catch {
     // ignore
   }
+}
+
+/** Clear both the saved device identity (keypair) and any cached token. */
+export function clearAllDeviceState(): void {
+  clearDeviceIdentity();
+  clearLegacyDeviceToken();
 }
 
 /**
@@ -84,6 +120,7 @@ export function buildDefaultConfig(
     maxProtocol: 3,
     heartbeatIntervalMs: 15000,
     autoReconnect: true,
+    deviceToken: "",
     ...overrides,
   };
 }
@@ -100,19 +137,24 @@ export class OpenClawClient {
   >();
   private eventHandlers = new Map<string, Set<EventHandler>>();
   private connectionHandlers = new Set<ConnectionHandler>();
+  private tokenHandlers = new Set<TokenHandler>();
+  private errorHandlers = new Set<ClientErrorHandler>();
   private reconnectAttempt = 0;
   private maxReconnectDelay = 30000;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private heartbeatInterval: number;
-  private deviceToken: string | null = null;
+  private deviceToken: string | null;
   private requestId = 0;
   private disposed = false;
+  private identity: DeviceIdentity | null = null;
 
   constructor(config: OpenClawClientConfig) {
     this.config = config;
     this.heartbeatInterval = config.heartbeatIntervalMs;
-    this.deviceToken = readSavedDeviceToken();
+    // Settings store wins; fall back to legacy single-key storage for
+    // backwards compatibility with the pre-settings deviceToken layout.
+    this.deviceToken = config.deviceToken || readLegacyDeviceToken() || null;
   }
 
   connect(): void {
@@ -123,6 +165,11 @@ export class OpenClawClient {
       this.ws = new WebSocket(this.config.url);
     } catch (err) {
       console.error("[OpenClaw] failed to construct WebSocket:", err);
+      this.emitError({
+        code: "connect-failed",
+        message: `Could not open WebSocket to ${this.config.url}`,
+        hint: (err as Error)?.message,
+      });
       this.scheduleReconnect();
       return;
     }
@@ -151,6 +198,11 @@ export class OpenClawClient {
     this.ws.onerror = (event) => {
       console.error("[OpenClaw] WebSocket error:", event);
       this.notifyConnection("error");
+      this.emitError({
+        code: "socket-error",
+        message: `WebSocket error while talking to ${this.config.url}`,
+        hint: "Check that the gateway is reachable and the URL is correct. If you are on https:// the URL must be wss:// (not ws://).",
+      });
     };
   }
 
@@ -164,7 +216,7 @@ export class OpenClawClient {
 
   private handleEvent(event: WsEvent): void {
     if (event.event === "connect.challenge") {
-      this.handleChallenge(event.payload);
+      void this.handleChallenge(event.payload);
       return;
     }
     const handlers = this.eventHandlers.get(event.event);
@@ -190,25 +242,59 @@ export class OpenClawClient {
         }
         pending.resolve(res);
       } else {
-        pending.reject(new Error(res.error?.message ?? "Request failed"));
+        const errMsg = res.error?.message ?? "Request failed";
+        // Any failure on the `connect` request is a handshake rejection.
+        if (res.id === this.currentConnectReqId) {
+          this.emitError({
+            code: "handshake-rejected",
+            message: `Gateway rejected the handshake: ${errMsg}`,
+            hint: "Check that the Client ID, Client Mode and device identity match what your gateway allows.",
+          });
+        }
+        pending.reject(new Error(errMsg));
       }
     }
   }
 
+  private currentConnectReqId: string | null = null;
+
   /**
-   * Respond to the gateway's `connect.challenge` with a clean protocol-v3
-   * `connect` request. The schema only allows:
+   * Respond to the gateway's `connect.challenge` with a full protocol-v3
+   * `connect` request. Flow:
    *
-   *   minProtocol, maxProtocol,
-   *   client { id, version, platform, mode },
-   *   auth.deviceToken (string, only if we already have one)
+   *   1. Load (or generate) the persistent Ed25519 device identity.
+   *   2. Read the `nonce` from the challenge payload.
+   *   3. Sign `${nonce}.${deviceId}.${signedAt}` with the device private key.
+   *   4. Send `connect` with `client`, `device`, and — only if we already
+   *      hold one — `auth.deviceToken` for reconnect.
    *
-   * The challenge `nonce` is NOT echoed at the root — it is only used
-   * later for signing if device auth becomes required. `displayName`,
-   * `auth.role`, `auth.scopes`, and a null `deviceToken` are all rejected
-   * by the gateway, so we deliberately do NOT send them.
+   * Any failure at step 1 or 3 is surfaced via `emitError` so the UI can
+   * display a clear reason (e.g. "insecure context — open this over https://").
    */
-  private handleChallenge(_payload: Record<string, unknown>): void {
+  private async handleChallenge(
+    payload: Record<string, unknown>,
+  ): Promise<void> {
+    const nonce =
+      typeof payload.nonce === "string" ? (payload.nonce as string) : null;
+
+    let identity: DeviceIdentity;
+    try {
+      identity = await getOrCreateDeviceIdentity();
+      this.identity = identity;
+    } catch (err) {
+      const e = err as DeviceIdentityError;
+      this.emitError({
+        code: e.code === "insecure-context" ? "insecure-context" : "device-identity",
+        message: e.message,
+        hint:
+          e.code === "insecure-context"
+            ? "Open Mission Control over https:// (e.g. Tailscale Serve, Nginx + TLS) or via http://localhost."
+            : "See the browser console for the raw error.",
+      });
+      this.notifyConnection("error");
+      return;
+    }
+
     const params: Record<string, unknown> = {
       minProtocol: this.config.minProtocol,
       maxProtocol: this.config.maxProtocol,
@@ -220,15 +306,47 @@ export class OpenClawClient {
       },
     };
 
-    // Only include the auth block when we actually have a saved
-    // deviceToken from a previous successful handshake. The schema
-    // requires deviceToken to be a string (never null), so we omit
-    // the entire auth object on first connect.
+    // Always include the full device block. If the gateway allows
+    // anonymous control-ui it will ignore the extra fields; if it
+    // requires device identity this is exactly what it needs.
+    if (nonce) {
+      try {
+        const signed = await signChallenge(identity, nonce);
+        params.device = {
+          id: identity.id,
+          publicKey: identity.publicKey,
+          signature: signed.signature,
+          signedAt: signed.signedAt,
+          nonce: signed.nonce,
+        };
+      } catch (err) {
+        const e = err as DeviceIdentityError;
+        this.emitError({
+          code: "device-identity",
+          message: e.message,
+          hint: "Try clearing the saved device identity in Settings and reconnecting.",
+        });
+        this.notifyConnection("error");
+        return;
+      }
+    } else {
+      // No nonce in the challenge — still send the public identity so
+      // the gateway can bind the session to this device.
+      params.device = {
+        id: identity.id,
+        publicKey: identity.publicKey,
+      };
+    }
+
+    // Reconnect path: include the token returned by the previous
+    // successful handshake. Must never be an empty string or null.
     if (this.deviceToken) {
       params.auth = { deviceToken: this.deviceToken };
     }
 
-    this.send("connect", params).then(
+    const reqId = `connect-${Date.now()}`;
+    this.currentConnectReqId = reqId;
+    this.sendRaw("connect", params, reqId).then(
       (res) => {
         if (!res.ok) {
           console.error("[OpenClaw] connect rejected:", res.error);
@@ -251,15 +369,12 @@ export class OpenClawClient {
         ? (payload.deviceToken as string)
         : null;
     const newToken = tokenFromAuth ?? tokenFromRoot;
-    if (newToken) {
+    if (newToken && newToken !== this.deviceToken) {
       this.deviceToken = newToken;
-      if (typeof window !== "undefined") {
-        try {
-          window.localStorage.setItem(DEVICE_TOKEN_KEY, newToken);
-        } catch {
-          // ignore quota / private mode errors
-        }
-      }
+      // Clear the legacy storage key on the first successful hand-off so
+      // the settings store becomes the single source of truth.
+      clearLegacyDeviceToken();
+      this.notifyToken(newToken);
     }
     const policy = payload.policy as { tickIntervalMs?: number } | undefined;
     if (policy?.tickIntervalMs) {
@@ -270,12 +385,20 @@ export class OpenClawClient {
   }
 
   send(method: string, params?: Record<string, unknown>): Promise<WsResponse> {
+    const id = `req-${++this.requestId}`;
+    return this.sendRaw(method, params, id);
+  }
+
+  private sendRaw(
+    method: string,
+    params: Record<string, unknown> | undefined,
+    id: string,
+  ): Promise<WsResponse> {
     return new Promise((resolve, reject) => {
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
         reject(new Error("WebSocket not connected"));
         return;
       }
-      const id = `req-${++this.requestId}`;
       const req: WsRequest = { type: "req", id, method, params };
       this.pendingRequests.set(id, { resolve, reject });
       this.ws.send(JSON.stringify(req));
@@ -306,8 +429,39 @@ export class OpenClawClient {
     };
   }
 
+  /**
+   * Subscribe to deviceToken updates. Fires once per successful handshake
+   * that carried a token we hadn't already seen. Used by the provider to
+   * write the token back into the settings store.
+   */
+  onToken(handler: TokenHandler): () => void {
+    this.tokenHandlers.add(handler);
+    return () => {
+      this.tokenHandlers.delete(handler);
+    };
+  }
+
+  /**
+   * Subscribe to structured client errors. The UI uses this to render a
+   * friendly banner instead of relying on the browser console.
+   */
+  onError(handler: ClientErrorHandler): () => void {
+    this.errorHandlers.add(handler);
+    return () => {
+      this.errorHandlers.delete(handler);
+    };
+  }
+
   private notifyConnection(state: "connected" | "disconnected" | "error"): void {
     this.connectionHandlers.forEach((h) => h(state));
+  }
+
+  private notifyToken(token: string): void {
+    this.tokenHandlers.forEach((h) => h(token));
+  }
+
+  private emitError(err: ClientError): void {
+    this.errorHandlers.forEach((h) => h(err));
   }
 
   private startHeartbeat(): void {
@@ -372,6 +526,8 @@ export class OpenClawClient {
     this.pendingRequests.clear();
     this.eventHandlers.clear();
     this.connectionHandlers.clear();
+    this.tokenHandlers.clear();
+    this.errorHandlers.clear();
   }
 }
 
