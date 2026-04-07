@@ -109,28 +109,26 @@ export function testConnection(
       }
 
       if (msg.type === "event" && msg.event === "connect.challenge") {
-        const nonce = (msg.payload as { nonce?: unknown })?.nonce ?? null;
+        const nonce = (msg.payload as { nonce?: unknown })?.nonce;
+        const params: Record<string, unknown> = {
+          minProtocol: config.minProtocol,
+          maxProtocol: config.maxProtocol,
+          client: {
+            id: config.clientId,
+            version: config.version,
+            platform: "web",
+            mode: config.mode,
+          },
+        };
+        if (typeof nonce === "string") params.nonce = nonce;
+        // Test Connection always behaves like a fresh first connect — no
+        // deviceToken — so the gateway can validate the new identity
+        // without us reusing a stale token.
         const req = {
           type: "req",
           id: "test-connect",
           method: "connect",
-          params: {
-            minProtocol: config.minProtocol,
-            maxProtocol: config.maxProtocol,
-            client: {
-              id: config.clientId,
-              displayName: config.displayName,
-              version: config.version,
-              platform: "web",
-              mode: config.mode,
-            },
-            auth: {
-              role: config.authRole,
-              scopes: config.authScopes,
-              deviceToken: null,
-              nonce,
-            },
-          },
+          params,
         };
         try {
           ws!.send(JSON.stringify(req));

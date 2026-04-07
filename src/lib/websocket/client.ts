@@ -8,19 +8,57 @@ type ConnectionHandler = (state: "connected" | "disconnected" | "error") => void
  * Full runtime configuration for an OpenClaw client instance. All values
  * are normally sourced from the user settings store, so changing any of
  * them causes the provider to dispose the old client and create a new one.
+ *
+ * The protocol-v3 `connect` payload only allows a small whitelist of
+ * `client.id` and `client.mode` values (the gateway validates them as a
+ * JSON-schema `anyOf` of constants). The settings page restricts inputs
+ * to the known-good options listed in `KNOWN_CLIENT_IDS` / `KNOWN_MODES`.
  */
 export interface OpenClawClientConfig {
   url: string;
   clientId: string;
+  /** Optional human-readable label kept locally; not sent in the handshake. */
   displayName: string;
   version: string;
   mode: string;
-  authRole: string;
-  authScopes: string[];
   minProtocol: number;
   maxProtocol: number;
   heartbeatIntervalMs: number;
   autoReconnect: boolean;
+}
+
+/** Known client.id values accepted by the OpenClaw gateway. */
+export const KNOWN_CLIENT_IDS = [
+  "openclaw-control-ui",
+  "mission-control",
+] as const;
+
+/** Known client.mode values accepted by the OpenClaw gateway. */
+export const KNOWN_CLIENT_MODES = [
+  "operator",
+  "control-ui",
+  "web",
+  "node",
+] as const;
+
+const DEVICE_TOKEN_KEY = "mc-device-token";
+
+export function readSavedDeviceToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(DEVICE_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function clearSavedDeviceToken(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(DEVICE_TOKEN_KEY);
+  } catch {
+    // ignore
+  }
 }
 
 /**
@@ -36,12 +74,10 @@ export function buildDefaultConfig(
 ): OpenClawClientConfig {
   return {
     url: DEFAULT_WS_URL,
-    clientId: "mission-control",
+    clientId: "openclaw-control-ui",
     displayName: "Mission Control",
     version: clientVersion,
-    mode: "control-ui",
-    authRole: "operator",
-    authScopes: ["operator.read", "operator.write"],
+    mode: "operator",
     minProtocol: 3,
     maxProtocol: 3,
     heartbeatIntervalMs: 15000,
@@ -74,11 +110,7 @@ export class OpenClawClient {
   constructor(config: OpenClawClientConfig) {
     this.config = config;
     this.heartbeatInterval = config.heartbeatIntervalMs;
-    const stored =
-      typeof window !== "undefined"
-        ? localStorage.getItem("mc-device-token")
-        : null;
-    if (stored) this.deviceToken = stored;
+    this.deviceToken = readSavedDeviceToken();
   }
 
   connect(): void {
@@ -162,28 +194,44 @@ export class OpenClawClient {
   }
 
   /**
-   * Respond to the gateway's `connect.challenge` with a protocol-v3
-   * `connect` request whose shape is driven entirely by the user-provided
-   * configuration so nothing about identity or auth is hardcoded.
+   * Respond to the gateway's `connect.challenge` with a clean protocol-v3
+   * `connect` request. The schema only allows:
+   *
+   *   minProtocol, maxProtocol, client { id, version, platform, mode },
+   *   nonce (echoed from the challenge),
+   *   auth.deviceToken (string, only if we already have one)
+   *
+   * `displayName`, `auth.role`, `auth.scopes`, and a null `deviceToken`
+   * are all rejected by the gateway, so we deliberately do NOT send them.
    */
   private handleChallenge(payload: Record<string, unknown>): void {
-    this.send("connect", {
+    const params: Record<string, unknown> = {
       minProtocol: this.config.minProtocol,
       maxProtocol: this.config.maxProtocol,
       client: {
         id: this.config.clientId,
-        displayName: this.config.displayName,
         version: this.config.version,
         platform: "web",
         mode: this.config.mode,
       },
-      auth: {
-        role: this.config.authRole,
-        scopes: this.config.authScopes,
-        deviceToken: this.deviceToken,
-        nonce: payload.nonce,
-      },
-    }).then(
+    };
+
+    // Echo the challenge nonce at the top level so the gateway can pair
+    // the challenge with the connect response. Some deployments require
+    // it, others ignore it; sending it is harmless when present.
+    if (typeof payload.nonce === "string") {
+      params.nonce = payload.nonce;
+    }
+
+    // Only include the auth block when we actually have a saved
+    // deviceToken from a previous successful handshake. The schema
+    // requires deviceToken to be a string (never null), so we omit
+    // the entire auth object on first connect.
+    if (this.deviceToken) {
+      params.auth = { deviceToken: this.deviceToken };
+    }
+
+    this.send("connect", params).then(
       (res) => {
         if (!res.ok) {
           console.error("[OpenClaw] connect rejected:", res.error);
@@ -196,11 +244,24 @@ export class OpenClawClient {
   }
 
   private onHelloOk(payload: Record<string, unknown>): void {
+    // The gateway may return the deviceToken either nested under auth or
+    // at the top level depending on version. Accept both.
     const auth = payload.auth as { deviceToken?: string } | undefined;
-    if (auth?.deviceToken) {
-      this.deviceToken = auth.deviceToken;
+    const tokenFromAuth =
+      typeof auth?.deviceToken === "string" ? auth.deviceToken : null;
+    const tokenFromRoot =
+      typeof payload.deviceToken === "string"
+        ? (payload.deviceToken as string)
+        : null;
+    const newToken = tokenFromAuth ?? tokenFromRoot;
+    if (newToken) {
+      this.deviceToken = newToken;
       if (typeof window !== "undefined") {
-        localStorage.setItem("mc-device-token", auth.deviceToken);
+        try {
+          window.localStorage.setItem(DEVICE_TOKEN_KEY, newToken);
+        } catch {
+          // ignore quota / private mode errors
+        }
       }
     }
     const policy = payload.policy as { tickIntervalMs?: number } | undefined;

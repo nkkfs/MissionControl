@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { CheckCircle2, XCircle, Loader2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { parseAuthScopes } from "@/lib/settings/defaults";
 import { useSettings } from "@/lib/settings/store";
 import {
   testConnection,
@@ -33,8 +32,6 @@ export function TestConnectionPanel() {
       displayName: settings.connection.displayName,
       version: clientVersion,
       mode: settings.connection.mode,
-      authRole: settings.connection.authRole,
-      authScopes: parseAuthScopes(settings.connection.authScopes),
       minProtocol: settings.connection.minProtocol,
       maxProtocol: settings.connection.maxProtocol,
       heartbeatIntervalMs: settings.connection.heartbeatIntervalMs,

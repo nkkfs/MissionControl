@@ -17,7 +17,6 @@ import {
 import type { WsResponse } from "./types";
 import type { ConnectionState } from "@/types";
 import { useSettings } from "@/lib/settings/store";
-import { parseAuthScopes } from "@/lib/settings/defaults";
 
 interface WebSocketContextValue {
   send: (method: string, params?: Record<string, unknown>) => Promise<WsResponse>;
@@ -26,6 +25,8 @@ interface WebSocketContextValue {
     handler: (payload: Record<string, unknown>) => void,
   ) => () => void;
   connectionState: ConnectionState;
+  /** Force-rebuild the underlying client (e.g. after clearing the device token). */
+  reconnect: () => void;
 }
 
 const WebSocketContext = createContext<WebSocketContextValue | null>(null);
@@ -34,6 +35,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   const clientRef = useRef<OpenClawClient | null>(null);
   const [connectionState, setConnectionState] =
     useState<ConnectionState>("connecting");
+  // Bumping this counter forces the connection effect to tear down and
+  // re-create the client even when no settings field has changed.
+  const [reconnectNonce, setReconnectNonce] = useState(0);
 
   const { settings, hydrated } = useSettings();
   const conn = settings.connection;
@@ -53,8 +57,6 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
       displayName: conn.displayName,
       version: clientVersion,
       mode: conn.mode,
-      authRole: conn.authRole,
-      authScopes: parseAuthScopes(conn.authScopes),
       minProtocol: conn.minProtocol,
       maxProtocol: conn.maxProtocol,
       heartbeatIntervalMs: conn.heartbeatIntervalMs,
@@ -85,17 +87,20 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     };
   }, [
     hydrated,
+    reconnectNonce,
     conn.wsUrl,
     conn.clientId,
     conn.displayName,
     conn.mode,
-    conn.authRole,
-    conn.authScopes,
     conn.minProtocol,
     conn.maxProtocol,
     conn.heartbeatIntervalMs,
     conn.autoReconnect,
   ]);
+
+  const reconnect = useCallback(() => {
+    setReconnectNonce((n) => n + 1);
+  }, []);
 
   const send = useCallback(
     (method: string, params?: Record<string, unknown>) => {
@@ -114,7 +119,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <WebSocketContext.Provider value={{ send, on, connectionState }}>
+    <WebSocketContext.Provider value={{ send, on, connectionState, reconnect }}>
       {children}
     </WebSocketContext.Provider>
   );

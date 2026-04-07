@@ -16,11 +16,12 @@ export const DEFAULT_WS_URL = "ws://127.0.0.1:18789";
 export const DEFAULT_SETTINGS: AppSettings = {
   connection: {
     wsUrl: ENV_WS_URL ?? DEFAULT_WS_URL,
-    clientId: "mission-control",
+    // Defaults match the OpenClaw gateway's allowed values for the
+    // operator-style control UI. See KNOWN_CLIENT_IDS / KNOWN_CLIENT_MODES
+    // in src/lib/websocket/client.ts for the full whitelist.
+    clientId: "openclaw-control-ui",
     displayName: "Mission Control",
-    mode: "control-ui",
-    authRole: "operator",
-    authScopes: "operator.read, operator.write",
+    mode: "operator",
     minProtocol: 3,
     maxProtocol: 3,
     heartbeatIntervalMs: 15000,
@@ -35,7 +36,13 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
 };
 
-export const SETTINGS_STORAGE_KEY = "mc-settings-v1";
+/**
+ * Bumped to v2 when we removed authRole/authScopes and switched the
+ * default client.id and client.mode to the gateway-allowed constants.
+ * The store reads the new key only, so any stale v1 payload is ignored
+ * (and replaced on next save).
+ */
+export const SETTINGS_STORAGE_KEY = "mc-settings-v2";
 
 /** Merge a partial settings patch on top of a base, preserving all sections. */
 export function mergeSettings(
@@ -49,10 +56,3 @@ export function mergeSettings(
   };
 }
 
-/** Parse the comma-separated `authScopes` string into a trimmed list. */
-export function parseAuthScopes(scopes: string): string[] {
-  return scopes
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-}

@@ -10,18 +10,18 @@ export type Theme = "dark" | "light";
 export interface ConnectionSettings {
   /** WebSocket URL of the OpenClaw gateway. */
   wsUrl: string;
-  /** Identity reported to the gateway during handshake. */
-  clientId: string;
-  displayName: string;
-  /** `mode` field in the handshake `client` object. */
-  mode: string;
-  /** Auth role requested during the handshake. */
-  authRole: string;
   /**
-   * Comma-separated list of auth scopes requested during the handshake.
-   * Stored as a string for easy editing; parsed into an array before use.
+   * Identity reported to the gateway during handshake. Must be one of the
+   * gateway's allowed `client.id` constants — see KNOWN_CLIENT_IDS.
    */
-  authScopes: string;
+  clientId: string;
+  /** Local-only label shown in the top-bar. Not sent to the gateway. */
+  displayName: string;
+  /**
+   * `mode` field in the handshake `client` object. Must be one of the
+   * gateway's allowed `client.mode` constants — see KNOWN_CLIENT_MODES.
+   */
+  mode: string;
   /** Protocol version range advertised to the gateway. */
   minProtocol: number;
   maxProtocol: number;

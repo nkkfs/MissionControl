@@ -1,15 +1,34 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { KeyRound, Wifi, WifiOff, CircleAlert } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useWebSocket } from "@/lib/websocket/provider";
 import { useSettings } from "@/lib/settings/store";
+import {
+  KNOWN_CLIENT_IDS,
+  KNOWN_CLIENT_MODES,
+  clearSavedDeviceToken,
+  readSavedDeviceToken,
+} from "@/lib/websocket/client";
 import { SettingsSection } from "./settings-section";
 import {
   NumberField,
+  SelectField,
   TextField,
   ToggleField,
 } from "./setting-field";
 import { TestConnectionPanel } from "./test-connection-panel";
-import { Wifi, WifiOff, CircleAlert } from "lucide-react";
+
+const CLIENT_ID_OPTIONS = KNOWN_CLIENT_IDS.map((id) => ({
+  value: id,
+  label: id,
+}));
+
+const MODE_OPTIONS = KNOWN_CLIENT_MODES.map((mode) => ({
+  value: mode,
+  label: mode,
+}));
 
 /**
  * Edits every connection-related field the OpenClawClient uses. Changing
@@ -17,7 +36,7 @@ import { Wifi, WifiOff, CircleAlert } from "lucide-react";
  */
 export function ConnectionSettingsCard() {
   const { settings, updateConnection } = useSettings();
-  const { connectionState } = useWebSocket();
+  const { connectionState, reconnect } = useWebSocket();
   const conn = settings.connection;
 
   return (
@@ -28,42 +47,44 @@ export function ConnectionSettingsCard() {
       <LiveStatus state={connectionState} url={conn.wsUrl} />
 
       <div className="grid gap-4 md:grid-cols-2">
-        <TextField
-          label="WebSocket URL"
-          help="e.g. ws://127.0.0.1:18789 or ws://server.local:18789"
-          value={conn.wsUrl}
-          onChange={(wsUrl) => updateConnection({ wsUrl })}
-          type="url"
-        />
-        <TextField
+        <div className="md:col-span-2">
+          <TextField
+            label="WebSocket URL"
+            help="e.g. ws://127.0.0.1:18789 or ws://server.local:18789"
+            value={conn.wsUrl}
+            onChange={(wsUrl) => updateConnection({ wsUrl })}
+            type="url"
+          />
+        </div>
+        <SelectField
           label="Client ID"
-          help="Sent as client.id during handshake"
+          help="Sent as client.id during the handshake. Must match a value the gateway accepts."
           value={conn.clientId}
+          options={CLIENT_ID_OPTIONS}
           onChange={(clientId) => updateConnection({ clientId })}
         />
-        <TextField
-          label="Display Name"
-          help="Sent as client.displayName"
-          value={conn.displayName}
-          onChange={(displayName) => updateConnection({ displayName })}
-        />
-        <TextField
-          label="Mode"
-          help="Sent as client.mode (e.g. control-ui, observer)"
+        <SelectField
+          label="Client Mode"
+          help="Sent as client.mode. Pick 'operator' for a control UI like this one."
           value={conn.mode}
+          options={MODE_OPTIONS}
           onChange={(mode) => updateConnection({ mode })}
         />
         <TextField
-          label="Auth Role"
-          help="Sent as auth.role"
-          value={conn.authRole}
-          onChange={(authRole) => updateConnection({ authRole })}
+          label="Display Name"
+          help="Local label shown in the top-bar. Not sent to the gateway."
+          value={conn.displayName}
+          onChange={(displayName) => updateConnection({ displayName })}
         />
-        <TextField
-          label="Auth Scopes"
-          help="Comma-separated list, sent as auth.scopes"
-          value={conn.authScopes}
-          onChange={(authScopes) => updateConnection({ authScopes })}
+        <NumberField
+          label="Heartbeat (ms)"
+          help="Interval between ping requests. Gateway policy may override."
+          value={conn.heartbeatIntervalMs}
+          min={1000}
+          step={1000}
+          onChange={(heartbeatIntervalMs) =>
+            updateConnection({ heartbeatIntervalMs })
+          }
         />
         <NumberField
           label="Min Protocol"
@@ -81,16 +102,6 @@ export function ConnectionSettingsCard() {
           max={99}
           onChange={(maxProtocol) => updateConnection({ maxProtocol })}
         />
-        <NumberField
-          label="Heartbeat (ms)"
-          help="Interval between ping requests. Gateway policy may override."
-          value={conn.heartbeatIntervalMs}
-          min={1000}
-          step={1000}
-          onChange={(heartbeatIntervalMs) =>
-            updateConnection({ heartbeatIntervalMs })
-          }
-        />
       </div>
 
       <div className="mt-2 border-t border-border pt-4">
@@ -103,9 +114,54 @@ export function ConnectionSettingsCard() {
       </div>
 
       <div className="mt-2 border-t border-border pt-4">
+        <DeviceTokenPanel onCleared={reconnect} />
+      </div>
+
+      <div className="mt-2 border-t border-border pt-4">
         <TestConnectionPanel />
       </div>
     </SettingsSection>
+  );
+}
+
+function DeviceTokenPanel({ onCleared }: { onCleared: () => void }) {
+  const [token, setToken] = useState<string | null>(null);
+
+  // Read once on mount and after any clear so we mirror localStorage.
+  useEffect(() => {
+    setToken(readSavedDeviceToken());
+  }, []);
+
+  const masked = token ? `${token.slice(0, 6)}…${token.slice(-4)}` : null;
+
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex-1">
+        <p className="text-xs font-medium text-foreground">Saved device token</p>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">
+          The gateway returns this on the first successful handshake and we
+          reuse it on reconnects. Clear it if the gateway no longer accepts
+          it (e.g. after a server reset).
+        </p>
+        <p className="mt-2 font-mono text-[11px] text-muted-foreground">
+          {masked ?? "— none saved —"}
+        </p>
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={!token}
+        onClick={() => {
+          clearSavedDeviceToken();
+          setToken(null);
+          onCleared();
+        }}
+        className="shrink-0"
+      >
+        <KeyRound className="h-3.5 w-3.5" />
+        Clear Token
+      </Button>
+    </div>
   );
 }
 
