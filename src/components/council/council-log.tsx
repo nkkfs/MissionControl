@@ -5,6 +5,7 @@ import { useCouncil } from "@/lib/hooks/use-council";
 import { useTeam } from "@/lib/hooks/use-team";
 import type { AgentFull, CouncilOutcome } from "@/types";
 import { cn } from "@/lib/utils";
+import { DemoBanner } from "@/components/ui/demo-banner";
 import { CouncilStats } from "./council-stats";
 import { DecisionCard } from "./decision-card";
 
@@ -18,7 +19,7 @@ const FILTERS: { key: Filter; label: string }[] = [
 ];
 
 export function CouncilLog() {
-  const { decisions, stats, loading } = useCouncil();
+  const { decisions, stats, loading, source } = useCouncil();
   const { agents } = useTeam();
   const [filter, setFilter] = useState<Filter>("all");
 
@@ -43,6 +44,9 @@ export function CouncilLog() {
 
   return (
     <div className="flex flex-col gap-6">
+      {source === "mock" && (
+        <DemoBanner reason="Gateway has not implemented council.decisions yet. Showing local fixture data." />
+      )}
       <CouncilStats
         total={stats.total}
         approvalRate={stats.approvalRate}

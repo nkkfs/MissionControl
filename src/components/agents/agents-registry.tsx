@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { useTeam } from "@/lib/hooks/use-team";
+import { useAgentRegistry } from "@/lib/hooks/use-agent-registry";
+import { DemoBanner } from "@/components/ui/demo-banner";
 import { AgentsStats } from "./agents-stats";
 import { AgentRegistryCard } from "./agent-registry-card";
 
 export function AgentsRegistry() {
-  const { agents, loading } = useTeam();
+  const { agents, loading, source } = useAgentRegistry();
 
   const stats = useMemo(() => {
     const models = new Set(agents.map((a) => a.model).filter(Boolean));
@@ -38,6 +39,9 @@ export function AgentsRegistry() {
 
   return (
     <div className="flex flex-col gap-6">
+      {source === "mock" && (
+        <DemoBanner reason="Gateway has not implemented agents.registry yet. Showing local fixture data." />
+      )}
       <AgentsStats
         total={stats.total}
         uniqueModels={stats.uniqueModels}
