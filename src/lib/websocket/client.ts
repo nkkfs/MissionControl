@@ -35,10 +35,12 @@ export const KNOWN_CLIENT_IDS = [
 
 /** Known client.mode values accepted by the OpenClaw gateway. */
 export const KNOWN_CLIENT_MODES = [
-  "operator",
   "control-ui",
-  "web",
+  "operator",
+  "ui",
+  "webchat",
   "node",
+  "cli",
 ] as const;
 
 const DEVICE_TOKEN_KEY = "mc-device-token";
@@ -77,7 +79,7 @@ export function buildDefaultConfig(
     clientId: "openclaw-control-ui",
     displayName: "Mission Control",
     version: clientVersion,
-    mode: "operator",
+    mode: "control-ui",
     minProtocol: 3,
     maxProtocol: 3,
     heartbeatIntervalMs: 15000,
@@ -197,14 +199,16 @@ export class OpenClawClient {
    * Respond to the gateway's `connect.challenge` with a clean protocol-v3
    * `connect` request. The schema only allows:
    *
-   *   minProtocol, maxProtocol, client { id, version, platform, mode },
-   *   nonce (echoed from the challenge),
+   *   minProtocol, maxProtocol,
+   *   client { id, version, platform, mode },
    *   auth.deviceToken (string, only if we already have one)
    *
-   * `displayName`, `auth.role`, `auth.scopes`, and a null `deviceToken`
-   * are all rejected by the gateway, so we deliberately do NOT send them.
+   * The challenge `nonce` is NOT echoed at the root — it is only used
+   * later for signing if device auth becomes required. `displayName`,
+   * `auth.role`, `auth.scopes`, and a null `deviceToken` are all rejected
+   * by the gateway, so we deliberately do NOT send them.
    */
-  private handleChallenge(payload: Record<string, unknown>): void {
+  private handleChallenge(_payload: Record<string, unknown>): void {
     const params: Record<string, unknown> = {
       minProtocol: this.config.minProtocol,
       maxProtocol: this.config.maxProtocol,
@@ -215,13 +219,6 @@ export class OpenClawClient {
         mode: this.config.mode,
       },
     };
-
-    // Echo the challenge nonce at the top level so the gateway can pair
-    // the challenge with the connect response. Some deployments require
-    // it, others ignore it; sending it is harmless when present.
-    if (typeof payload.nonce === "string") {
-      params.nonce = payload.nonce;
-    }
 
     // Only include the auth block when we actually have a saved
     // deviceToken from a previous successful handshake. The schema

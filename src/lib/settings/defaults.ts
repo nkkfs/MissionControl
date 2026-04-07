@@ -21,7 +21,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     // in src/lib/websocket/client.ts for the full whitelist.
     clientId: "openclaw-control-ui",
     displayName: "Mission Control",
-    mode: "operator",
+    mode: "control-ui",
     minProtocol: 3,
     maxProtocol: 3,
     heartbeatIntervalMs: 15000,
@@ -37,12 +37,15 @@ export const DEFAULT_SETTINGS: AppSettings = {
 };
 
 /**
- * Bumped to v2 when we removed authRole/authScopes and switched the
- * default client.id and client.mode to the gateway-allowed constants.
- * The store reads the new key only, so any stale v1 payload is ignored
- * (and replaced on next save).
+ * Bumped each time the connection-related defaults change in a way that
+ * could leave a stale localStorage payload pointing the client at values
+ * the gateway no longer accepts. The store reads the new key only, so
+ * any older payload is ignored and replaced on next save.
+ *
+ * v3: default mode switched from "operator" to "control-ui" after the
+ * gateway tightened its `client.mode` schema.
  */
-export const SETTINGS_STORAGE_KEY = "mc-settings-v2";
+export const SETTINGS_STORAGE_KEY = "mc-settings-v3";
 
 /** Merge a partial settings patch on top of a base, preserving all sections. */
 export function mergeSettings(

@@ -109,7 +109,6 @@ export function testConnection(
       }
 
       if (msg.type === "event" && msg.event === "connect.challenge") {
-        const nonce = (msg.payload as { nonce?: unknown })?.nonce;
         const params: Record<string, unknown> = {
           minProtocol: config.minProtocol,
           maxProtocol: config.maxProtocol,
@@ -120,10 +119,9 @@ export function testConnection(
             mode: config.mode,
           },
         };
-        if (typeof nonce === "string") params.nonce = nonce;
         // Test Connection always behaves like a fresh first connect — no
-        // deviceToken — so the gateway can validate the new identity
-        // without us reusing a stale token.
+        // deviceToken and no nonce echo — so the gateway can validate the
+        // new identity without us reusing a stale token.
         const req = {
           type: "req",
           id: "test-connect",
