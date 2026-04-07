@@ -1,7 +1,23 @@
 import type { WsMessage, WsRequest, WsResponse, WsEvent } from "./types";
+import { version as clientVersion } from "../../../package.json";
 
 type EventHandler = (payload: Record<string, unknown>) => void;
 type ConnectionHandler = (state: "connected" | "disconnected" | "error") => void;
+
+// OpenClaw gateway protocol. This client implements protocol version 3.
+const MIN_PROTOCOL = 3;
+const MAX_PROTOCOL = 3;
+
+// Static identity we present to the gateway during handshake.
+const CLIENT_IDENTITY = {
+  id: "mission-control",
+  displayName: "Mission Control",
+  version: clientVersion,
+  platform: "web",
+  mode: "control-ui",
+} as const;
+
+export const DEFAULT_WS_URL = "ws://127.0.0.1:18789";
 
 export class OpenClawClient {
   private ws: WebSocket | null = null;
@@ -21,7 +37,7 @@ export class OpenClawClient {
   private requestId = 0;
   private disposed = false;
 
-  constructor(url: string = "ws://127.0.0.1:18789") {
+  constructor(url: string = DEFAULT_WS_URL) {
     this.url = url;
     const stored = typeof window !== "undefined"
       ? localStorage.getItem("mc-device-token")
@@ -35,7 +51,8 @@ export class OpenClawClient {
 
     try {
       this.ws = new WebSocket(this.url);
-    } catch {
+    } catch (err) {
+      console.error("[OpenClaw] failed to construct WebSocket:", err);
       this.scheduleReconnect();
       return;
     }
@@ -48,7 +65,8 @@ export class OpenClawClient {
       let msg: WsMessage;
       try {
         msg = JSON.parse(event.data);
-      } catch {
+      } catch (err) {
+        console.error("[OpenClaw] failed to parse message:", err, event.data);
         return;
       }
       this.handleMessage(msg);
@@ -60,7 +78,8 @@ export class OpenClawClient {
       this.scheduleReconnect();
     };
 
-    this.ws.onerror = () => {
+    this.ws.onerror = (event) => {
+      console.error("[OpenClaw] WebSocket error:", event);
       this.notifyConnection("error");
     };
   }
@@ -104,23 +123,35 @@ export class OpenClawClient {
     }
   }
 
+  /**
+   * Respond to the gateway's `connect.challenge` with a protocol-v3
+   * `connect` request. Schema:
+   *   {
+   *     minProtocol: 3,
+   *     maxProtocol: 3,
+   *     client:  { id, displayName, version, platform, mode },
+   *     auth:    { role, scopes, deviceToken?, nonce }
+   *   }
+   * Errors from this request are logged and surface via the socket state
+   * instead of being silently swallowed.
+   */
   private handleChallenge(payload: Record<string, unknown>): void {
-    // Gateway schema: minProtocol/maxProtocol/client required; auth context
-    // (deviceToken, nonce, role, scopes) is sent under a nested `auth` object.
     this.send("connect", {
-      minProtocol: 1,
-      maxProtocol: 1,
-      client: { name: "mission-control", version: "0.1.0" },
+      minProtocol: MIN_PROTOCOL,
+      maxProtocol: MAX_PROTOCOL,
+      client: { ...CLIENT_IDENTITY },
       auth: {
         role: "operator",
         scopes: ["operator.read", "operator.write"],
         deviceToken: this.deviceToken,
         nonce: payload.nonce,
       },
-    }).catch(() => {
-      // Swallow rejections from the handshake so they don't surface as
-      // unhandled promise errors in the dev overlay; the connection state
-      // will flip to "disconnected" via the socket close handler.
+    }).then((res) => {
+      if (!res.ok) {
+        console.error("[OpenClaw] connect rejected:", res.error);
+      }
+    }, (err: Error) => {
+      console.error("[OpenClaw] connect request failed:", err.message);
     });
   }
 
@@ -128,7 +159,9 @@ export class OpenClawClient {
     const auth = payload.auth as { deviceToken?: string } | undefined;
     if (auth?.deviceToken) {
       this.deviceToken = auth.deviceToken;
-      localStorage.setItem("mc-device-token", auth.deviceToken);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("mc-device-token", auth.deviceToken);
+      }
     }
     const policy = payload.policy as { tickIntervalMs?: number } | undefined;
     if (policy?.tickIntervalMs) {

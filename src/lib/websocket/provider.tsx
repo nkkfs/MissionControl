@@ -9,7 +9,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { OpenClawClient } from "./client";
+import { OpenClawClient, DEFAULT_WS_URL } from "./client";
 import type { WsResponse } from "./types";
 import type { ConnectionState } from "@/types";
 
@@ -21,8 +21,14 @@ interface WebSocketContextValue {
 
 const WebSocketContext = createContext<WebSocketContextValue | null>(null);
 
+// Resolve the gateway URL from NEXT_PUBLIC_OPENCLAW_WS_URL so non-technical
+// users can point Mission Control at a remote OpenClaw instance by setting
+// an env var instead of editing code. Falls back to loopback for dev.
+const ENV_WS_URL =
+  typeof process !== "undefined" ? process.env.NEXT_PUBLIC_OPENCLAW_WS_URL : undefined;
+
 export function WebSocketProvider({
-  url = "ws://127.0.0.1:18789",
+  url,
   children,
 }: {
   url?: string;
@@ -31,8 +37,11 @@ export function WebSocketProvider({
   const clientRef = useRef<OpenClawClient | null>(null);
   const [connectionState, setConnectionState] = useState<ConnectionState>("connecting");
 
+  const effectiveUrl = url ?? ENV_WS_URL ?? DEFAULT_WS_URL;
+
   useEffect(() => {
-    const client = new OpenClawClient(url);
+    console.info(`[OpenClaw] connecting to ${effectiveUrl}`);
+    const client = new OpenClawClient(effectiveUrl);
     clientRef.current = client;
 
     client.onConnection((state) => {
@@ -45,7 +54,7 @@ export function WebSocketProvider({
       client.dispose();
       clientRef.current = null;
     };
-  }, [url]);
+  }, [effectiveUrl]);
 
   const send = useCallback(
     (method: string, params?: Record<string, unknown>) => {
