@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { WebSocketProvider } from "@/lib/websocket/provider";
+import { SettingsProvider } from "@/lib/settings/store";
 import { AppShell } from "@/components/layout/app-shell";
 
 const geistSans = Geist({
@@ -30,9 +31,11 @@ export default function RootLayout({
       className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="h-full bg-background text-foreground">
-        <WebSocketProvider>
-          <AppShell>{children}</AppShell>
-        </WebSocketProvider>
+        <SettingsProvider>
+          <WebSocketProvider>
+            <AppShell>{children}</AppShell>
+          </WebSocketProvider>
+        </SettingsProvider>
       </body>
     </html>
   );

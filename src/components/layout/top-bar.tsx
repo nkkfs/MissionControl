@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Pause, Settings, Wifi, WifiOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ export function TopBar() {
     "/feedback": "Feedback",
     "/agents": "Agents",
     "/council": "Council",
+    "/settings": "Settings",
   };
   const pageTitle = PAGE_TITLES[pathname] ?? "Tasks";
   const { connectionState } = useWebSocket();
@@ -74,7 +76,13 @@ export function TopBar() {
         </Button>
 
         {/* Settings */}
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground"
+          nativeButton={false}
+          render={<Link href="/settings" aria-label="Open Settings" />}
+        >
           <Settings className="h-4 w-4" />
         </Button>
       </div>

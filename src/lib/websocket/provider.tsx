@@ -9,59 +9,100 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { OpenClawClient, DEFAULT_WS_URL } from "./client";
+import {
+  OpenClawClient,
+  clientVersion,
+  type OpenClawClientConfig,
+} from "./client";
 import type { WsResponse } from "./types";
 import type { ConnectionState } from "@/types";
+import { useSettings } from "@/lib/settings/store";
+import { parseAuthScopes } from "@/lib/settings/defaults";
 
 interface WebSocketContextValue {
   send: (method: string, params?: Record<string, unknown>) => Promise<WsResponse>;
-  on: (event: string, handler: (payload: Record<string, unknown>) => void) => () => void;
+  on: (
+    event: string,
+    handler: (payload: Record<string, unknown>) => void,
+  ) => () => void;
   connectionState: ConnectionState;
 }
 
 const WebSocketContext = createContext<WebSocketContextValue | null>(null);
 
-// Resolve the gateway URL from NEXT_PUBLIC_OPENCLAW_WS_URL so non-technical
-// users can point Mission Control at a remote OpenClaw instance by setting
-// an env var instead of editing code. Falls back to loopback for dev.
-const ENV_WS_URL =
-  typeof process !== "undefined" ? process.env.NEXT_PUBLIC_OPENCLAW_WS_URL : undefined;
-
-export function WebSocketProvider({
-  url,
-  children,
-}: {
-  url?: string;
-  children: ReactNode;
-}) {
+export function WebSocketProvider({ children }: { children: ReactNode }) {
   const clientRef = useRef<OpenClawClient | null>(null);
-  const [connectionState, setConnectionState] = useState<ConnectionState>("connecting");
+  const [connectionState, setConnectionState] =
+    useState<ConnectionState>("connecting");
 
-  const effectiveUrl = url ?? ENV_WS_URL ?? DEFAULT_WS_URL;
+  const { settings, hydrated } = useSettings();
+  const conn = settings.connection;
 
+  // Rebuild the client whenever any connection-affecting setting changes.
+  // This is what makes settings apply immediately without a page reload.
   useEffect(() => {
-    console.info(`[OpenClaw] connecting to ${effectiveUrl}`);
-    const client = new OpenClawClient(effectiveUrl);
-    clientRef.current = client;
+    if (!hydrated) {
+      // Wait for localStorage to load so we do not briefly connect with
+      // stale defaults.
+      return;
+    }
 
-    client.onConnection((state) => {
-      setConnectionState(state === "connected" ? "connected" : state === "error" ? "error" : "disconnected");
+    const config: OpenClawClientConfig = {
+      url: conn.wsUrl,
+      clientId: conn.clientId,
+      displayName: conn.displayName,
+      version: clientVersion,
+      mode: conn.mode,
+      authRole: conn.authRole,
+      authScopes: parseAuthScopes(conn.authScopes),
+      minProtocol: conn.minProtocol,
+      maxProtocol: conn.maxProtocol,
+      heartbeatIntervalMs: conn.heartbeatIntervalMs,
+      autoReconnect: conn.autoReconnect,
+    };
+
+    console.info(`[OpenClaw] connecting to ${config.url}`);
+    const client = new OpenClawClient(config);
+    clientRef.current = client;
+    setConnectionState("connecting");
+
+    const offConnection = client.onConnection((state) => {
+      setConnectionState(
+        state === "connected"
+          ? "connected"
+          : state === "error"
+            ? "error"
+            : "disconnected",
+      );
     });
 
     client.connect();
 
     return () => {
+      offConnection();
       client.dispose();
-      clientRef.current = null;
+      if (clientRef.current === client) clientRef.current = null;
     };
-  }, [effectiveUrl]);
+  }, [
+    hydrated,
+    conn.wsUrl,
+    conn.clientId,
+    conn.displayName,
+    conn.mode,
+    conn.authRole,
+    conn.authScopes,
+    conn.minProtocol,
+    conn.maxProtocol,
+    conn.heartbeatIntervalMs,
+    conn.autoReconnect,
+  ]);
 
   const send = useCallback(
     (method: string, params?: Record<string, unknown>) => {
       if (!clientRef.current) return Promise.reject(new Error("No client"));
       return clientRef.current.send(method, params);
     },
-    []
+    [],
   );
 
   const on = useCallback(
@@ -69,7 +110,7 @@ export function WebSocketProvider({
       if (!clientRef.current) return () => {};
       return clientRef.current.on(event, handler);
     },
-    []
+    [],
   );
 
   return (

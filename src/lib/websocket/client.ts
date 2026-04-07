@@ -4,44 +4,80 @@ import { version as clientVersion } from "../../../package.json";
 type EventHandler = (payload: Record<string, unknown>) => void;
 type ConnectionHandler = (state: "connected" | "disconnected" | "error") => void;
 
-// OpenClaw gateway protocol. This client implements protocol version 3.
-const MIN_PROTOCOL = 3;
-const MAX_PROTOCOL = 3;
+/**
+ * Full runtime configuration for an OpenClaw client instance. All values
+ * are normally sourced from the user settings store, so changing any of
+ * them causes the provider to dispose the old client and create a new one.
+ */
+export interface OpenClawClientConfig {
+  url: string;
+  clientId: string;
+  displayName: string;
+  version: string;
+  mode: string;
+  authRole: string;
+  authScopes: string[];
+  minProtocol: number;
+  maxProtocol: number;
+  heartbeatIntervalMs: number;
+  autoReconnect: boolean;
+}
 
-// Static identity we present to the gateway during handshake.
-const CLIENT_IDENTITY = {
-  id: "mission-control",
-  displayName: "Mission Control",
-  version: clientVersion,
-  platform: "web",
-  mode: "control-ui",
-} as const;
-
+/**
+ * Fallback URL used only when no stored or env-provided URL is available.
+ * The Settings page lets non-technical users change this without editing
+ * any code.
+ */
 export const DEFAULT_WS_URL = "ws://127.0.0.1:18789";
+
+/** Convenience for call-sites that only know the URL (e.g. test utilities). */
+export function buildDefaultConfig(
+  overrides: Partial<OpenClawClientConfig> = {},
+): OpenClawClientConfig {
+  return {
+    url: DEFAULT_WS_URL,
+    clientId: "mission-control",
+    displayName: "Mission Control",
+    version: clientVersion,
+    mode: "control-ui",
+    authRole: "operator",
+    authScopes: ["operator.read", "operator.write"],
+    minProtocol: 3,
+    maxProtocol: 3,
+    heartbeatIntervalMs: 15000,
+    autoReconnect: true,
+    ...overrides,
+  };
+}
 
 export class OpenClawClient {
   private ws: WebSocket | null = null;
-  private url: string;
-  private pendingRequests = new Map<string, {
-    resolve: (res: WsResponse) => void;
-    reject: (err: Error) => void;
-  }>();
+  private config: OpenClawClientConfig;
+  private pendingRequests = new Map<
+    string,
+    {
+      resolve: (res: WsResponse) => void;
+      reject: (err: Error) => void;
+    }
+  >();
   private eventHandlers = new Map<string, Set<EventHandler>>();
   private connectionHandlers = new Set<ConnectionHandler>();
   private reconnectAttempt = 0;
   private maxReconnectDelay = 30000;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
-  private heartbeatInterval = 15000;
+  private heartbeatInterval: number;
   private deviceToken: string | null = null;
   private requestId = 0;
   private disposed = false;
 
-  constructor(url: string = DEFAULT_WS_URL) {
-    this.url = url;
-    const stored = typeof window !== "undefined"
-      ? localStorage.getItem("mc-device-token")
-      : null;
+  constructor(config: OpenClawClientConfig) {
+    this.config = config;
+    this.heartbeatInterval = config.heartbeatIntervalMs;
+    const stored =
+      typeof window !== "undefined"
+        ? localStorage.getItem("mc-device-token")
+        : null;
     if (stored) this.deviceToken = stored;
   }
 
@@ -50,7 +86,7 @@ export class OpenClawClient {
     this.cleanup();
 
     try {
-      this.ws = new WebSocket(this.url);
+      this.ws = new WebSocket(this.config.url);
     } catch (err) {
       console.error("[OpenClaw] failed to construct WebSocket:", err);
       this.scheduleReconnect();
@@ -104,7 +140,9 @@ export class OpenClawClient {
     // Also notify wildcard subscribers
     const wildcardHandlers = this.eventHandlers.get("*");
     if (wildcardHandlers) {
-      wildcardHandlers.forEach((h) => h({ event: event.event, ...event.payload }));
+      wildcardHandlers.forEach((h) =>
+        h({ event: event.event, ...event.payload }),
+      );
     }
   }
 
@@ -125,34 +163,36 @@ export class OpenClawClient {
 
   /**
    * Respond to the gateway's `connect.challenge` with a protocol-v3
-   * `connect` request. Schema:
-   *   {
-   *     minProtocol: 3,
-   *     maxProtocol: 3,
-   *     client:  { id, displayName, version, platform, mode },
-   *     auth:    { role, scopes, deviceToken?, nonce }
-   *   }
-   * Errors from this request are logged and surface via the socket state
-   * instead of being silently swallowed.
+   * `connect` request whose shape is driven entirely by the user-provided
+   * configuration so nothing about identity or auth is hardcoded.
    */
   private handleChallenge(payload: Record<string, unknown>): void {
     this.send("connect", {
-      minProtocol: MIN_PROTOCOL,
-      maxProtocol: MAX_PROTOCOL,
-      client: { ...CLIENT_IDENTITY },
+      minProtocol: this.config.minProtocol,
+      maxProtocol: this.config.maxProtocol,
+      client: {
+        id: this.config.clientId,
+        displayName: this.config.displayName,
+        version: this.config.version,
+        platform: "web",
+        mode: this.config.mode,
+      },
       auth: {
-        role: "operator",
-        scopes: ["operator.read", "operator.write"],
+        role: this.config.authRole,
+        scopes: this.config.authScopes,
         deviceToken: this.deviceToken,
         nonce: payload.nonce,
       },
-    }).then((res) => {
-      if (!res.ok) {
-        console.error("[OpenClaw] connect rejected:", res.error);
-      }
-    }, (err: Error) => {
-      console.error("[OpenClaw] connect request failed:", err.message);
-    });
+    }).then(
+      (res) => {
+        if (!res.ok) {
+          console.error("[OpenClaw] connect rejected:", res.error);
+        }
+      },
+      (err: Error) => {
+        console.error("[OpenClaw] connect request failed:", err.message);
+      },
+    );
   }
 
   private onHelloOk(payload: Record<string, unknown>): void {
@@ -216,7 +256,13 @@ export class OpenClawClient {
     this.stopHeartbeat();
     this.heartbeatTimer = setInterval(() => {
       if (this.ws?.readyState === WebSocket.OPEN) {
-        this.ws.send(JSON.stringify({ type: "req", id: `hb-${Date.now()}`, method: "ping" }));
+        this.ws.send(
+          JSON.stringify({
+            type: "req",
+            id: `hb-${Date.now()}`,
+            method: "ping",
+          }),
+        );
       }
     }, this.heartbeatInterval);
   }
@@ -229,8 +275,11 @@ export class OpenClawClient {
   }
 
   private scheduleReconnect(): void {
-    if (this.disposed) return;
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempt), this.maxReconnectDelay);
+    if (this.disposed || !this.config.autoReconnect) return;
+    const delay = Math.min(
+      1000 * Math.pow(2, this.reconnectAttempt),
+      this.maxReconnectDelay,
+    );
     this.reconnectAttempt++;
     this.reconnectTimer = setTimeout(() => this.connect(), delay);
   }
@@ -246,7 +295,10 @@ export class OpenClawClient {
       this.ws.onmessage = null;
       this.ws.onclose = null;
       this.ws.onerror = null;
-      if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
+      if (
+        this.ws.readyState === WebSocket.OPEN ||
+        this.ws.readyState === WebSocket.CONNECTING
+      ) {
         this.ws.close();
       }
       this.ws = null;
@@ -256,9 +308,13 @@ export class OpenClawClient {
   dispose(): void {
     this.disposed = true;
     this.cleanup();
-    this.pendingRequests.forEach(({ reject }) => reject(new Error("Client disposed")));
+    this.pendingRequests.forEach(({ reject }) =>
+      reject(new Error("Client disposed")),
+    );
     this.pendingRequests.clear();
     this.eventHandlers.clear();
     this.connectionHandlers.clear();
   }
 }
+
+export { clientVersion };

@@ -1,6 +1,7 @@
 "use client";
 
 import { FlaskConical } from "lucide-react";
+import { useSettings } from "@/lib/settings/store";
 
 interface DemoBannerProps {
   /** Short explanation of why mock data is being shown. */
@@ -12,8 +13,17 @@ interface DemoBannerProps {
  * of data fetched from the live OpenClaw gateway. Rendered above the page
  * content whenever the corresponding gateway method is not yet available
  * or the request to the gateway failed.
+ *
+ * Users can hide every banner instance at once from the Settings page via
+ * `behavior.showDemoBanner`.
  */
 export function DemoBanner({ reason }: DemoBannerProps) {
+  const { settings, hydrated } = useSettings();
+
+  // Once we know the user's preference, honour it. Before hydration we keep
+  // the banner visible so the first paint matches the SSR output.
+  if (hydrated && !settings.behavior.showDemoBanner) return null;
+
   return (
     <div
       className="flex items-start gap-3 rounded-lg border px-4 py-3"

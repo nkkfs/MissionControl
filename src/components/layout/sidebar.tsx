@@ -8,6 +8,7 @@ import {
   Calendar, FolderKanban, Brain, BookOpen, UserCircle,
   Building2, UsersRound, Settings, Radar, Factory,
   GitBranch, MessageSquare, PanelLeftClose, PanelLeftOpen,
+  SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -37,6 +38,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Factory", icon: Factory, href: "/factory", enabled: true },
   { label: "Pipeline", icon: GitBranch, href: "/pipeline", enabled: true },
   { label: "Feedback", icon: MessageSquare, href: "/feedback", enabled: true },
+  { label: "Settings", icon: SlidersHorizontal, href: "/settings", enabled: true },
 ];
 
 export function Sidebar() {
