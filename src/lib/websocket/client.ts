@@ -44,6 +44,10 @@ export interface OpenClawClientConfig {
   mode: string;
   minProtocol: number;
   maxProtocol: number;
+  /** Sent on the wire as `role`. */
+  role: string;
+  /** Sent on the wire as `scopes`. */
+  scopes: string[];
   heartbeatIntervalMs: number;
   autoReconnect: boolean;
   /**
@@ -94,9 +98,9 @@ export function clearLegacyDeviceToken(): void {
 }
 
 /** Clear both the saved device identity (keypair) and any cached token. */
-export function clearAllDeviceState(): void {
-  clearDeviceIdentity();
+export async function clearAllDeviceState(): Promise<void> {
   clearLegacyDeviceToken();
+  await clearDeviceIdentity();
 }
 
 /**
@@ -115,9 +119,11 @@ export function buildDefaultConfig(
     clientId: "openclaw-control-ui",
     displayName: "Mission Control",
     version: clientVersion,
-    mode: "control-ui",
+    mode: "ui",
     minProtocol: 3,
     maxProtocol: 3,
+    role: "operator",
+    scopes: ["operator.read", "operator.write", "operator.admin"],
     heartbeatIntervalMs: 15000,
     autoReconnect: true,
     deviceToken: "",
@@ -262,11 +268,19 @@ export class OpenClawClient {
    * Respond to the gateway's `connect.challenge` with a full protocol-v3
    * `connect` request. Flow:
    *
-   *   1. Load (or generate) the persistent Ed25519 device identity.
+   *   1. Load (or generate) the persistent Ed25519 device identity from
+   *      IndexedDB.
    *   2. Read the `nonce` from the challenge payload.
-   *   3. Sign `${nonce}.${deviceId}.${signedAt}` with the device private key.
-   *   4. Send `connect` with `client`, `device`, and — only if we already
-   *      hold one — `auth.deviceToken` for reconnect.
+   *   3. Sign the canonical v3 payload — see device-identity.ts for the
+   *      exact byte sequence — with the device private key.
+   *   4. Send `connect` with `client`, `device`, `role`, `scopes`, and —
+   *      only if we already hold one — `auth.deviceToken` for reconnect.
+   *
+   * Critical wire-format details enforced here:
+   *   - `device.signedAt` is an INTEGER (`Date.now()`), never a string.
+   *   - `role` and `scopes` are at the root of `params`, not under `auth`.
+   *   - The auth object is omitted entirely when no token is held, so the
+   *     schema does not see a null/empty deviceToken.
    *
    * Any failure at step 1 or 3 is surfaced via `emitError` so the UI can
    * display a clear reason (e.g. "insecure context — open this over https://").
@@ -289,7 +303,7 @@ export class OpenClawClient {
         hint:
           e.code === "insecure-context"
             ? "Open Mission Control over https:// (e.g. Tailscale Serve, Nginx + TLS) or via http://localhost."
-            : "See the browser console for the raw error.",
+            : "Try clearing the device identity in Settings and reconnecting.",
       });
       this.notifyConnection("error");
       return;
@@ -304,20 +318,29 @@ export class OpenClawClient {
         platform: "web",
         mode: this.config.mode,
       },
+      role: this.config.role,
+      scopes: this.config.scopes,
     };
 
-    // Always include the full device block. If the gateway allows
-    // anonymous control-ui it will ignore the extra fields; if it
-    // requires device identity this is exactly what it needs.
     if (nonce) {
       try {
-        const signed = await signChallenge(identity, nonce);
+        const signed = await signChallenge(identity, nonce, {
+          clientId: this.config.clientId,
+          mode: this.config.mode,
+          role: this.config.role,
+          scopes: this.config.scopes,
+          platform: "web",
+          deviceFamily: "browser",
+        });
         params.device = {
           id: identity.id,
           publicKey: identity.publicKey,
           signature: signed.signature,
+          // INTEGER milliseconds since epoch — required by the gateway
+          // schema (`/device/signedAt: must be integer`).
           signedAt: signed.signedAt,
           nonce: signed.nonce,
+          deviceFamily: "browser",
         };
       } catch (err) {
         const e = err as DeviceIdentityError;
@@ -335,6 +358,7 @@ export class OpenClawClient {
       params.device = {
         id: identity.id,
         publicKey: identity.publicKey,
+        deviceFamily: "browser",
       };
     }
 

@@ -25,6 +25,16 @@ export interface ConnectionSettings {
   /** Protocol version range advertised to the gateway. */
   minProtocol: number;
   maxProtocol: number;
+  /**
+   * Sent on the wire as `role`. Most remote OpenClaw gateways require
+   * this to be present alongside `scopes`.
+   */
+  role: string;
+  /**
+   * Sent on the wire as `scopes`. Defaults to the operator full-access
+   * triple — the gateway may downgrade what it actually grants.
+   */
+  scopes: string[];
   /** Heartbeat interval in milliseconds (gateway policy may override). */
   heartbeatIntervalMs: number;
   /** Whether to automatically reconnect after a dropped connection. */

@@ -45,6 +45,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
 
   const { settings, hydrated, updateConnection } = useSettings();
   const conn = settings.connection;
+  // Stable string for the effect dep — `scopes` is an array so its
+  // reference can change between renders even when the contents have not.
+  const scopesKey = conn.scopes.join(",");
 
   // Rebuild the client whenever any connection-affecting setting changes.
   // This is what makes settings apply immediately without a page reload.
@@ -63,6 +66,8 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
       mode: conn.mode,
       minProtocol: conn.minProtocol,
       maxProtocol: conn.maxProtocol,
+      role: conn.role,
+      scopes: conn.scopes,
       heartbeatIntervalMs: conn.heartbeatIntervalMs,
       autoReconnect: conn.autoReconnect,
       deviceToken: conn.deviceToken,
@@ -124,6 +129,8 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     conn.mode,
     conn.minProtocol,
     conn.maxProtocol,
+    conn.role,
+    scopesKey,
     conn.heartbeatIntervalMs,
     conn.autoReconnect,
   ]);

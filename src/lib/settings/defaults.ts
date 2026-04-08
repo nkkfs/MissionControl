@@ -21,9 +21,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
     // in src/lib/websocket/client.ts for the full whitelist.
     clientId: "openclaw-control-ui",
     displayName: "Mission Control",
-    mode: "control-ui",
+    // "ui" was the only mode that passed schema validation against the
+    // production gateway. The other values listed in KNOWN_CLIENT_MODES
+    // are still selectable via the dropdown for forward-compat.
+    mode: "ui",
     minProtocol: 3,
     maxProtocol: 3,
+    role: "operator",
+    scopes: ["operator.read", "operator.write", "operator.admin"],
     heartbeatIntervalMs: 15000,
     autoReconnect: true,
     deviceToken: "",
@@ -48,8 +53,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
  * v4: added `deviceToken` field as the single source of truth for the
  *     gateway-issued device token (replaces the legacy `mc-device-token`
  *     localStorage key).
+ * v5: default mode switched to "ui" (the only value that passes the
+ *     production gateway's schema), and added `role` + `scopes` fields
+ *     required by remote handshakes.
  */
-export const SETTINGS_STORAGE_KEY = "mc-settings-v4";
+export const SETTINGS_STORAGE_KEY = "mc-settings-v5";
 
 /** Merge a partial settings patch on top of a base, preserving all sections. */
 export function mergeSettings(

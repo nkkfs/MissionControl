@@ -169,22 +169,34 @@ export async function testConnection(
             platform: "web",
             mode: config.mode,
           },
+          role: config.role,
+          scopes: config.scopes,
         };
 
         try {
           if (nonce) {
-            const signed = await signChallenge(identity, nonce);
+            const signed = await signChallenge(identity, nonce, {
+              clientId: config.clientId,
+              mode: config.mode,
+              role: config.role,
+              scopes: config.scopes,
+              platform: "web",
+              deviceFamily: "browser",
+            });
             params.device = {
               id: identity.id,
               publicKey: identity.publicKey,
               signature: signed.signature,
+              // INTEGER ms since epoch — schema requires `must be integer`.
               signedAt: signed.signedAt,
               nonce: signed.nonce,
+              deviceFamily: "browser",
             };
           } else {
             params.device = {
               id: identity.id,
               publicKey: identity.publicKey,
+              deviceFamily: "browser",
             };
           }
         } catch (err) {

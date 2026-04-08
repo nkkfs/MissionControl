@@ -129,7 +129,10 @@ export function ConnectionSettingsCard() {
       </div>
 
       <div className="mt-2 border-t border-border pt-4">
-        <DeviceIdentityPanel onReset={reconnect} />
+        <DeviceIdentityPanel
+          onReset={reconnect}
+          updateConnection={updateConnection}
+        />
       </div>
 
       <div className="mt-2 border-t border-border pt-4">
@@ -149,9 +152,16 @@ export function ConnectionSettingsCard() {
 
 /* ------------------------- Device identity panel ------------------------ */
 
-function DeviceIdentityPanel({ onReset }: { onReset: () => void }) {
+function DeviceIdentityPanel({
+  onReset,
+  updateConnection,
+}: {
+  onReset: () => void;
+  updateConnection: (patch: { deviceToken?: string }) => void;
+}) {
   const [summary, setSummary] = useState<DeviceIdentitySummary | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(() => {
     getDeviceIdentitySummary()
@@ -163,13 +173,22 @@ function DeviceIdentityPanel({ onReset }: { onReset: () => void }) {
     refresh();
   }, [refresh]);
 
-  const resetIdentity = () => {
-    clearAllDeviceState();
-    setSummary(null);
-    onReset();
-    // Re-read so a freshly generated identity (from the next handshake)
-    // is reflected in the UI without a manual refresh.
-    setTimeout(refresh, 500);
+  const resetIdentity = async () => {
+    setBusy(true);
+    try {
+      // Wipes Ed25519 keypair (IndexedDB) AND legacy token storage.
+      // Also zero the deviceToken in settings so reconnect won't try to
+      // present a token that no longer binds to the new identity.
+      await clearAllDeviceState();
+      updateConnection({ deviceToken: "" });
+      setSummary(null);
+      onReset();
+      // Re-read so a freshly generated identity (from the next handshake)
+      // is reflected in the UI without a manual refresh.
+      setTimeout(refresh, 500);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const publicKeyShort = summary
@@ -177,44 +196,51 @@ function DeviceIdentityPanel({ onReset }: { onReset: () => void }) {
     : null;
 
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex-1">
-        <p className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-          <Fingerprint className="h-3.5 w-3.5" />
-          Device identity
-        </p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
-          Ed25519 keypair generated in your browser and used to sign the
-          gateway challenge. Clearing it forces a brand-new identity on the
-          next connect.
-        </p>
-        {!loaded ? (
-          <p className="mt-2 font-mono text-[11px] text-muted-foreground/70">
-            Checking…
+    <div
+      className="flex flex-col gap-3 rounded-lg border border-border/60 bg-muted/20 p-4"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-foreground">
+            <Fingerprint className="h-3.5 w-3.5" />
+            Device identity
           </p>
-        ) : summary ? (
-          <div className="mt-2 space-y-0.5 font-mono text-[11px] text-muted-foreground">
-            <p>id: {summary.id}</p>
-            <p>pk: {publicKeyShort}</p>
-            <p className="text-muted-foreground/70">
-              created {new Date(summary.createdAt).toLocaleString()}
-            </p>
-          </div>
-        ) : (
-          <p className="mt-2 font-mono text-[11px] text-muted-foreground/70">
-            — none yet, will be generated on next connect —
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Ed25519 keypair generated in your browser (stored in IndexedDB)
+            and used to sign the gateway challenge. Clearing it wipes the
+            keypair and device token so a brand-new identity is created on
+            the next connect.
           </p>
-        )}
+        </div>
       </div>
+
+      {!loaded ? (
+        <p className="font-mono text-[11px] text-muted-foreground/70">
+          Checking…
+        </p>
+      ) : summary ? (
+        <div className="space-y-0.5 rounded-md border border-border/60 bg-background/40 px-3 py-2 font-mono text-[11px] text-muted-foreground">
+          <p>id: {summary.id}</p>
+          <p>pk: {publicKeyShort}</p>
+          <p className="text-muted-foreground/70">
+            created {new Date(summary.createdAt).toLocaleString()}
+          </p>
+        </div>
+      ) : (
+        <p className="rounded-md border border-dashed border-border/60 bg-background/40 px-3 py-2 font-mono text-[11px] text-muted-foreground/70">
+          — none yet, will be generated on next connect —
+        </p>
+      )}
+
       <Button
         variant="outline"
         size="sm"
         onClick={resetIdentity}
-        disabled={!summary}
-        className="shrink-0"
+        disabled={busy}
+        className="self-start"
       >
-        <RefreshCw className="h-3.5 w-3.5" />
-        Clear Identity
+        <RefreshCw className={busy ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} />
+        {busy ? "Clearing…" : "Clear Device Identity"}
       </Button>
     </div>
   );

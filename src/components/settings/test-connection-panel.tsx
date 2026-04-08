@@ -34,6 +34,8 @@ export function TestConnectionPanel() {
       mode: settings.connection.mode,
       minProtocol: settings.connection.minProtocol,
       maxProtocol: settings.connection.maxProtocol,
+      role: settings.connection.role,
+      scopes: settings.connection.scopes,
       heartbeatIntervalMs: settings.connection.heartbeatIntervalMs,
       autoReconnect: settings.connection.autoReconnect,
       deviceToken: settings.connection.deviceToken,
