@@ -190,15 +190,16 @@ export async function testConnection(
               // INTEGER ms since epoch — schema requires `must be integer`.
               signedAt: signed.signedAt,
               nonce: signed.nonce,
-              deviceFamily: "browser",
             };
           } else {
             params.device = {
               id: identity.id,
               publicKey: identity.publicKey,
-              deviceFamily: "browser",
             };
           }
+          // NOTE: deviceFamily / platform are NOT sent inside `device`.
+          // The gateway rejects them as unknown properties. They are
+          // only used while building the signed payload in signChallenge.
         } catch (err) {
           finish({
             ok: false,

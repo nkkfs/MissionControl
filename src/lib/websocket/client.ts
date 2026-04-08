@@ -340,8 +340,12 @@ export class OpenClawClient {
           // schema (`/device/signedAt: must be integer`).
           signedAt: signed.signedAt,
           nonce: signed.nonce,
-          deviceFamily: "browser",
         };
+        // NOTE: deviceFamily and platform are intentionally NOT sent as
+        // fields of `device`. The gateway schema rejects them as unknown
+        // properties (`at /device: unexpected property 'deviceFamily'`).
+        // They are only used while building the signed payload inside
+        // signChallenge().
       } catch (err) {
         const e = err as DeviceIdentityError;
         this.emitError({
@@ -354,11 +358,11 @@ export class OpenClawClient {
       }
     } else {
       // No nonce in the challenge — still send the public identity so
-      // the gateway can bind the session to this device.
+      // the gateway can bind the session to this device. deviceFamily
+      // is deliberately omitted (see note above).
       params.device = {
         id: identity.id,
         publicKey: identity.publicKey,
-        deviceFamily: "browser",
       };
     }
 
