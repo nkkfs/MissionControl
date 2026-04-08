@@ -56,8 +56,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
  * v5: default mode switched to "ui" (the only value that passes the
  *     production gateway's schema), and added `role` + `scopes` fields
  *     required by remote handshakes.
+ * v6: fingerprint bug fixed — prior builds stored a deviceToken that was
+ *     bound to a truncated device.id, so any persisted v5 token is stale
+ *     and will be rejected. Bumping the key drops it cleanly; the
+ *     IndexedDB keypair (the expensive bit) is untouched.
  */
-export const SETTINGS_STORAGE_KEY = "mc-settings-v5";
+export const SETTINGS_STORAGE_KEY = "mc-settings-v6";
 
 /** Merge a partial settings patch on top of a base, preserving all sections. */
 export function mergeSettings(

@@ -300,10 +300,15 @@ async function deriveDeviceId(publicKey: CryptoKey): Promise<{
 }> {
   const raw = new Uint8Array(await crypto.subtle.exportKey("raw", publicKey));
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", raw));
-  // 22 base64url chars is ~128 bits — plenty for collision resistance and
-  // short enough to show in a settings card without wrapping.
+  // device.id = FULL base64url (no padding) of SHA-256(rawPublicKey).
+  //
+  // The gateway performs the exact same computation and rejects the
+  // handshake with "device identity mismatch" (DEVICE_AUTH_DEVICE_ID_MISMATCH)
+  // if device.id !== SHA-256(device.publicKey). A previous version of this
+  // file truncated the digest to 22 chars, which always tripped that check.
+  // The full output is 43 base64url chars (32-byte SHA-256 → no padding).
   return {
-    id: bytesToBase64Url(digest).slice(0, 22),
+    id: bytesToBase64Url(digest),
     publicKeyRaw: bytesToBase64Url(raw),
   };
 }
